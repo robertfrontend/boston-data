@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
-import { Search, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Map as MapIcon, Clock, Calendar, Truck, X, MapPin, Info } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Map as MapIcon, Clock, Calendar, Truck, X, MapPin, Info, GitHub } from 'lucide-react';
 import Papa from 'papaparse';
 import { APIProvider, Map, Marker, Polyline } from '@vis.gl/react-google-maps';
 
@@ -72,7 +72,6 @@ export default function Home() {
   // API Autocomplete for all Boston streets
   useEffect(() => {
     const trimmedQuery = searchQuery.trim();
-    // Start searching immediately from the first character
     if (!trimmedQuery || trimmedQuery.length < 1 || trimmedQuery === selectedStreet) {
       setSuggestions([]);
       setIsSearching(false);
@@ -111,7 +110,7 @@ export default function Home() {
       }
     };
 
-    const debounceTimer = setTimeout(fetchSuggestions, 50); // Near-instant debounce
+    const debounceTimer = setTimeout(fetchSuggestions, 50);
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, selectedStreet]);
 
@@ -175,7 +174,6 @@ export default function Home() {
 
   const handleSelectStreet = (name: string) => {
     if (!name) return;
-    // Helper to normalize street names for better matching
     const normalize = (s: string) => s.toLowerCase()
       .replace(/\bstreet\b/g, 'st')
       .replace(/\bavenue\b/g, 'ave')
@@ -192,8 +190,6 @@ export default function Home() {
       .trim();
 
     const normalizedSelected = normalize(name);
-    
-    // Find the closest match in our local cleaning database
     const localMatch = allStreets.find(s => normalize(s.st_name) === normalizedSelected) 
                      || allStreets.find(s => normalize(s.st_name).includes(normalizedSelected))
                      || allStreets.find(s => normalizedSelected.includes(normalize(s.st_name)));
@@ -234,26 +230,16 @@ export default function Home() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         if (!window.google) return;
-        
         const geocoder = new google.maps.Geocoder();
         const latlng = { lat: latitude, lng: longitude };
-        
         geocoder.geocode({ location: latlng }, (results, status) => {
           if (status === "OK" && results?.[0]) {
-            // Find the street name from address components
-            const routeComponent = results[0].address_components.find(
-              (c) => c.types.includes("route")
-            );
-            if (routeComponent) {
-              const streetName = routeComponent.long_name;
-              handleSelectStreet(streetName);
-            }
+            const routeComponent = results[0].address_components.find((c) => c.types.includes("route"));
+            if (routeComponent) handleSelectStreet(routeComponent.long_name);
           }
         });
       },
-      (error) => {
-        console.error("Error getting location:", error);
-      }
+      (error) => console.error(error)
     );
   };
 
@@ -280,22 +266,11 @@ export default function Home() {
     };
 
     const today = new Date();
-    const month = today.getMonth() + 1; // 1-12
-    
-    // Official Boston Seasons Logic
+    const month = today.getMonth() + 1;
     const isYearRound = sideData.year_round === 't';
     const isExtendedArea = ['North End', 'South End', 'Beacon Hill'].includes(sideData.dist_name);
     
-    let isCurrentlyInSeason = false;
-    if (isYearRound) {
-      isCurrentlyInSeason = true;
-    } else if (isExtendedArea) {
-      // March 1st to December 31st
-      isCurrentlyInSeason = month >= 3 && month <= 12;
-    } else {
-      // April 1st to November 30th
-      isCurrentlyInSeason = month >= 4 && month <= 11;
-    }
+    let isCurrentlyInSeason = isYearRound || (isExtendedArea ? (month >= 3 && month <= 12) : (month >= 4 && month <= 11));
 
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const currentDay = days[today.getDay()] as keyof StreetData;
@@ -308,17 +283,14 @@ export default function Home() {
       .filter(day => sideData[day as keyof StreetData] === 't')
       .map(day => day.charAt(0).toUpperCase() + day.slice(1) + 's');
     
-    const specificDaysText = activeDays.length > 0 
-      ? `Every ${activeDays.join(' & ')}`
-      : 'No scheduled cleaning';
+    const specificDaysText = activeDays.length > 0 ? `Every ${activeDays.join(' & ')}` : 'No scheduled cleaning';
 
     let status: 'danger' | 'safe' | 'info' = isSweepingToday ? 'danger' : 'safe';
-    let message = isSweepingToday ? 'MOVE YOUR CAR' : 'YOU CAN PARK';
+    let message = isSweepingToday ? 'Move Your Car' : 'Safe to Park';
     
     if (!isCurrentlyInSeason && scheduledForToday) {
       status = 'info';
-      const seasonStart = isExtendedArea ? 'March 1st' : 'April 1st';
-      message = `OFF-SEASON (Starts ${seasonStart})`;
+      message = `Starts ${isExtendedArea ? 'March 1st' : 'April 1st'}`;
     }
 
     return {
@@ -335,91 +307,60 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-slate-500 font-medium animate-pulse">Loading street data...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F2F7] gap-4">
+        <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />
       </div>
     );
   }
 
   return (
     <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-      <div className="min-h-screen bg-slate-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-slate-50 to-slate-100 font-sans text-slate-900 pb-24 selection:bg-blue-100">
-        <main className="max-w-lg mx-auto px-5 pt-12 md:pt-20 space-y-10">
+      <div className="min-h-screen bg-[#F2F2F7] font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] text-black pb-24">
+        <main className="max-w-lg mx-auto px-5 pt-12 space-y-8">
           
           {/* Header */}
-          <header className="text-center space-y-5 animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="relative w-24 h-24 mx-auto mb-2 drop-shadow-xl">
-              <Image 
-                src="/new-logo.png" 
-                alt="Boston Sweeper" 
-                fill
-                className="object-contain"
-                priority
-              />
+          <header className="text-center space-y-2">
+            <div className="relative w-20 h-20 mx-auto opacity-90">
+              <Image src="/new-logo.png" alt="Boston Sweeper" fill className="object-contain" priority />
             </div>
-            <div className="space-y-3">
-              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
-                Boston Sweeper
-              </h1>
-              <p className="text-slate-500 text-lg md:text-xl max-w-sm mx-auto font-medium leading-relaxed px-4">
-                Never get a parking ticket again.
-              </p>
-            </div>
+            <h1 className="text-3xl font-bold tracking-tight">Boston Sweeper</h1>
+            <p className="text-[#8E8E93] text-lg font-medium">Never get a ticket again.</p>
           </header>
 
-          {/* Search Section */}
-          <div className="relative z-50 animate-in fade-in zoom-in-95 duration-500" ref={searchContainerRef}>
-            <form onSubmit={handleSearch} className="relative group">
-              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none z-10">
-                {isSearching ? (
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-                ) : (
-                  <Search className={`w-5 h-5 transition-colors ${searchQuery ? 'text-blue-500' : 'text-slate-400'}`} />
-                )}
+          {/* Apple Style Search */}
+          <div className="relative z-50" ref={searchContainerRef}>
+            <div className="relative group bg-white/70 backdrop-blur-2xl rounded-2xl border border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden transition-all focus-within:shadow-[0_8px_24px_rgba(0,0,0,0.1)] focus-within:ring-1 focus-within:ring-[#007AFF]/20">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                {isSearching ? <Loader2 className="w-5 h-5 animate-spin text-[#007AFF]" /> : <Search className="w-5 h-5 text-[#8E8E93]" />}
               </div>
-              <input
-                type="text"
-                placeholder="Search your street (e.g. Boylston St)"
-                className="w-full bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl py-4 pl-14 pr-24 shadow-[0_8px_30px_rgb(0,0,0,0.06)] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all font-semibold text-slate-800 placeholder:text-slate-400 placeholder:font-medium text-lg"
-                value={searchQuery}
-                onFocus={() => setShowSuggestions(true)}
-                onChange={(e) => {setSearchQuery(e.target.value); setShowSuggestions(true);}}
-              />
+              <form onSubmit={handleSearch}>
+                <input
+                  type="text"
+                  placeholder="Street Name"
+                  className="w-full bg-transparent py-4 pl-12 pr-24 focus:outline-none text-lg font-medium placeholder:text-[#AEAEB2]"
+                  value={searchQuery}
+                  onFocus={() => setShowSuggestions(true)}
+                  onChange={(e) => {setSearchQuery(e.target.value); setShowSuggestions(true);}}
+                />
+              </form>
               <div className="absolute inset-y-0 right-3 flex items-center gap-2">
                 {searchQuery && (
-                  <button 
-                    type="button" 
-                    onClick={clearSearch}
-                    className="flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors p-1"
-                  >
-                    <X className="w-5 h-5 bg-slate-100 rounded-full p-0.5" />
+                  <button onClick={clearSearch} className="p-1 bg-[#8E8E93]/20 rounded-full text-[#8E8E93] hover:bg-[#8E8E93]/30 transition-colors">
+                    <X className="w-4 h-4" />
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={handleLocationClick}
-                  className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-                  title="Use my location"
-                >
+                <button onClick={handleLocationClick} className="p-2 bg-[#007AFF]/10 text-[#007AFF] rounded-full hover:bg-[#007AFF]/20 transition-all">
                   <MapPin className="w-5 h-5" />
                 </button>
               </div>
-            </form>
+            </div>
             
-            {/* Dropdown Suggestions */}
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl border border-slate-100 rounded-2xl shadow-[0_20px_40px_rgb(0,0,0,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 divide-y divide-slate-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white/90 backdrop-blur-3xl border border-white/20 rounded-2xl shadow-[0_16px_32px_rgba(0,0,0,0.1)] overflow-hidden divide-y divide-[#F2F2F7]">
                 {suggestions.map((name, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => handleSelectStreet(name)} 
-                    className="w-full px-5 py-4 text-left hover:bg-blue-50/50 transition-colors flex items-center gap-4 group"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-white flex items-center justify-center transition-colors">
-                      <MapIcon className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
-                    </div>
-                    <span className="font-semibold text-slate-700 group-hover:text-blue-700 transition-colors text-lg">{name}</span>
+                  <button key={i} onClick={() => handleSelectStreet(name)} className="w-full px-5 py-4 text-left hover:bg-[#007AFF]/10 transition-colors flex items-center gap-3">
+                    <MapIcon className="w-4 h-4 text-[#8E8E93]" />
+                    <span className="font-semibold text-[#1C1C1E]">{name}</span>
                   </button>
                 ))}
               </div>
@@ -427,21 +368,18 @@ export default function Home() {
           </div>
 
           {selectedStreet ? (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 fill-mode-both">
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
-              {/* Controls & Navigation */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                {/* Segmented Control */}
+              {/* Segmented Control */}
+              <div className="flex flex-col gap-4">
                 {allStreets.some(s => s.st_name === selectedStreet) && (
-                  <div className="flex p-1 bg-white border border-slate-200/60 rounded-xl shadow-sm w-full sm:w-auto">
+                  <div className="bg-[#E3E3E8] p-1 rounded-xl flex">
                     {['Odd', 'Even'].map(side => (
                       <button 
                         key={side} 
                         onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
-                        className={`flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
-                          selectedSide === side 
-                            ? 'bg-slate-900 text-white shadow-md' 
-                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                        className={`flex-1 py-1.5 text-sm font-semibold rounded-[9px] transition-all ${
+                          selectedSide === side ? 'bg-white shadow-sm text-black' : 'text-[#8E8E93] hover:text-[#1C1C1E]'
                         }`}
                       >
                         {side} Side
@@ -450,181 +388,93 @@ export default function Home() {
                   </div>
                 )}
                 
-                {/* Back Button (if looking at details) */}
                 {selectedSegmentId && (
-                  <button 
-                    onClick={() => {setSelectedSegmentId(null); setCoords([]);}}
-                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5"
-                  >
-                    <ChevronRight className="w-4 h-4 rotate-180" />
-                    Back to Blocks
+                  <button onClick={() => {setSelectedSegmentId(null); setCoords([]);}} className="text-[#007AFF] font-semibold text-sm flex items-center gap-1">
+                    <ChevronRight className="w-4 h-4 rotate-180" /> Back to Blocks
                   </button>
                 )}
               </div>
 
-              {/* View 1: Block Selection */}
               {!selectedSegmentId && allStreets.some(s => s.st_name === selectedStreet) && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
-                  <div className="flex items-center gap-2 px-1">
-                    <div className="h-px bg-slate-200 flex-1"></div>
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Select your block</h3>
-                    <div className="h-px bg-slate-200 flex-1"></div>
-                  </div>
-                  
-                  <div className="grid gap-3">
-                    {allStreets.filter(s => s.st_name === selectedStreet && s.side === selectedSide).map(seg => (
-                      <button 
-                        key={seg.main_id} 
-                        onClick={() => setSelectedSegmentId(seg.main_id)} 
-                        className="w-full p-5 bg-white border border-slate-200/60 rounded-2xl shadow-sm hover:shadow-md hover:border-blue-200 hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-between group"
-                      >
-                        <div className="text-left space-y-1">
-                          <p className="font-bold text-slate-800 text-lg leading-tight group-hover:text-blue-700 transition-colors">
-                            {seg.from} <span className="text-slate-400 font-medium text-base px-1">to</span> {seg.to}
-                          </p>
-                          <p className="text-sm text-slate-500 flex items-center gap-1.5 font-medium">
-                            <MapIcon className="w-3.5 h-3.5 opacity-70"/> {seg.dist_name}
-                          </p>
-                        </div>
-                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors shrink-0 ml-4">
-                          <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-transform group-hover:translate-x-0.5" />
-                        </div>
-                      </button>
-                    ))}
-                    
-                    {allStreets.filter(s => s.st_name === selectedStreet && s.side === selectedSide).length === 0 && (
-                      <div className="text-center py-10 px-4 bg-slate-100 rounded-2xl border border-slate-200 border-dashed">
-                        <p className="text-slate-500 font-medium">No blocks found for the {selectedSide} side of {selectedStreet}.</p>
+                <div className="bg-white rounded-2xl overflow-hidden divide-y divide-[#F2F2F7] shadow-sm">
+                  {allStreets.filter(s => s.st_name === selectedStreet && s.side === selectedSide).map(seg => (
+                    <button key={seg.main_id} onClick={() => setSelectedSegmentId(seg.main_id)} className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7] transition-all">
+                      <div className="text-left">
+                        <p className="font-bold text-[#1C1C1E]">{seg.from} to {seg.to}</p>
+                        <p className="text-xs text-[#8E8E93] font-medium uppercase tracking-wide">{seg.dist_name}</p>
                       </div>
-                    )}
-                  </div>
+                      <ChevronRight className="w-5 h-5 text-[#C7C7CC]" />
+                    </button>
+                  ))}
                 </div>
               )}
 
-              {/* View 3: No Schedule Found */}
               {!selectedSegmentId && !allStreets.some(s => s.st_name === selectedStreet) && (
-                <div className="text-center space-y-6 py-12 animate-in fade-in zoom-in-95 duration-500">
-                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Info className="w-10 h-10 text-slate-400" />
+                <div className="bg-white rounded-3xl p-10 text-center space-y-4 shadow-sm">
+                  <div className="w-16 h-16 bg-[#F2F2F7] rounded-full flex items-center justify-center mx-auto">
+                    <Info className="w-8 h-8 text-[#8E8E93]" />
                   </div>
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">{selectedStreet}</h3>
-                    <p className="text-slate-500 font-medium max-w-xs mx-auto">No street sweeping schedule found for this location in our database.</p>
-                  </div>
-                  <button 
-                    onClick={clearSearch}
-                    className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
-                  >
-                    Try another street
-                  </button>
+                  <h3 className="text-xl font-bold">{selectedStreet}</h3>
+                  <p className="text-[#8E8E93] font-medium">No cleaning schedule found for this location.</p>
                 </div>
               )}
 
-              {/* View 2: Status & Details */}
               {streetDetails && (
-                <div className="space-y-6 animate-in fade-in zoom-in-95 duration-400">
-                  
-                  {/* Big Status Banner */}
-                  <div className={`relative overflow-hidden rounded-[2rem] p-8 md:p-10 text-white shadow-2xl transition-all duration-500 border border-white/20 ${
-                    streetDetails.status === 'danger' 
-                      ? 'bg-gradient-to-br from-rose-500 via-red-500 to-red-600 shadow-red-500/25' 
-                      : streetDetails.status === 'info'
-                        ? 'bg-gradient-to-br from-blue-500 via-indigo-500 to-indigo-600 shadow-indigo-500/25'
-                        : 'bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 shadow-emerald-500/25'
+                <div className="space-y-6">
+                  {/* Status Card (Live Activity Style) */}
+                  <div className={`rounded-3xl p-8 text-white shadow-lg transition-all border border-white/10 ${
+                    streetDetails.status === 'danger' ? 'bg-[#FF3B30]' : streetDetails.status === 'info' ? 'bg-[#007AFF]' : 'bg-[#34C759]'
                   }`}>
-                    {/* Decorative Blobs */}
-                    <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/10 blur-3xl pointer-events-none"></div>
-                    <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-black/10 blur-3xl pointer-events-none"></div>
-                    
-                    <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-                      {/* Location Header */}
-                      <div className="space-y-2 w-full">
-                        <p className="text-white/80 font-black uppercase tracking-[0.2em] text-xs">Target Zone</p>
-                        <div className="bg-white/10 border border-white/20 rounded-2xl p-4 backdrop-blur-md shadow-inner">
-                          <h3 className="font-bold text-xl md:text-2xl mb-2">{streetDetails.name}</h3>
-                          <div className="flex items-center justify-center gap-2 text-sm md:text-base font-semibold text-white/90">
-                            <span className="truncate">{streetDetails.from}</span>
-                            <ChevronRight className="w-4 h-4 opacity-50 shrink-0" />
-                            <span className="truncate">{streetDetails.to}</span>
-                          </div>
-                        </div>
+                    <div className="flex flex-col items-center text-center space-y-6">
+                      <div className="space-y-1">
+                        <h2 className="text-3xl font-extrabold tracking-tight">{streetDetails.message}</h2>
+                        <p className="text-white/80 font-medium">{streetDetails.name}</p>
                       </div>
-
-                      {/* Main Status */}
-                      <div className="flex flex-col items-center gap-5">
-                        <div className={`p-5 rounded-[2rem] bg-white/20 backdrop-blur-md shadow-[inset_0_2px_4px_rgba(255,255,255,0.3)] border border-white/30`}>
-                          {streetDetails.status === 'danger' ? <AlertTriangle className="w-14 h-14 text-white drop-shadow-md" /> : streetDetails.status === 'info' ? <Clock className="w-14 h-14 text-white drop-shadow-md" /> : <CheckCircle2 className="w-14 h-14 text-white drop-shadow-md" />}
+                      
+                      <div className="w-full bg-white/20 h-px"></div>
+                      
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase font-bold text-white/60 mb-1">Schedule</p>
+                          <p className="font-bold text-lg">{streetDetails.nextSweeping}</p>
                         </div>
-                        <h2 className="text-4xl md:text-5xl font-black tracking-tight drop-shadow-sm">
-                          {streetDetails.message}
-                        </h2>
-                      </div>
-
-                      {/* Time Schedule */}
-                      <div className="flex items-center gap-3 bg-black/20 px-6 py-4 rounded-2xl backdrop-blur-md w-full justify-center border border-black/10 shadow-inner">
-                        <Clock className="w-6 h-6 text-white/90" />
-                        <div className="text-left">
-                          <p className="text-xs font-bold text-white/60 uppercase tracking-wider mb-0.5">Cleaning Hours</p>
-                          <p className="font-bold text-lg leading-none">{streetDetails.nextSweeping}</p>
+                        <div className="w-px bg-white/20 h-10"></div>
+                        <div className="text-center">
+                          <p className="text-[10px] uppercase font-bold text-white/60 mb-1">Days</p>
+                          <p className="font-bold text-lg">
+                            {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                              .filter(day => streetDetails.raw[day as keyof StreetData] === 't')
+                              .map(day => day.charAt(0).toUpperCase() + day.slice(1))
+                              .join(', ')}
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Cleaning Schedule Details Card */}
-                  <div className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-slate-800 font-bold">
-                        <Calendar className="w-5 h-5 text-blue-500" />
-                        <h4 className="text-lg">Full Schedule</h4>
+                  {/* Details List (Apple Settings Style) */}
+                  <div className="bg-white rounded-3xl overflow-hidden shadow-sm divide-y divide-[#F2F2F7]">
+                    <div className="p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Calendar className="w-5 h-5 text-[#007AFF]" />
+                          <span className="font-bold">Cleaning Schedule</span>
+                        </div>
+                        <span className="text-xs font-bold text-[#8E8E93] bg-[#F2F2F7] px-2 py-1 rounded-md">12h Format</span>
                       </div>
-                      <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-400 tracking-wider">Official Data</span>
+                      <p className="text-2xl font-bold text-[#1C1C1E]">{streetDetails.specificDays}</p>
                     </div>
 
-                    <div className="space-y-1">
-                      <p className="text-2xl font-black text-blue-600 tracking-tight">
-                        {streetDetails.specificDays}
-                      </p>
-                      <p className="text-sm text-slate-500 font-medium">During active weeks</p>
-                    </div>
-
-                    <div className="grid grid-cols-7 gap-2">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => {
-                        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-                        const isActive = streetDetails.raw[dayNames[i] as keyof StreetData] === 't';
-                        const isToday = new Date().getDay() === i;
-                        
-                        return (
-                          <div key={i} className={`flex flex-col items-center gap-2 p-2.5 rounded-2xl border transition-all ${
-                            isActive 
-                              ? 'bg-blue-600 border-blue-600 text-white shadow-[0_8px_16px_rgba(37,99,235,0.25)]' 
-                              : 'bg-slate-50 border-slate-100 text-slate-400 opacity-60'
-                          } ${isToday && !isActive ? 'ring-2 ring-slate-200' : ''}`}>
-                            <span className="text-[10px] font-black uppercase tracking-tighter">{day[0]}</span>
-                            {isToday && <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-slate-300'}`}></div>}
-                          </div>
-                        )
-                      })}
-                    </div>
-
-                    <div className="pt-6 border-t border-slate-50 space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Truck className="w-4 h-4 text-slate-400" />
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Weeks</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {['1', '2', '3', '4', '5'].map(w => {
-                          const isActive = streetDetails.raw[`week_${w}` as keyof StreetData] === 't';
-                          const isCurrentWeek = Math.ceil(new Date().getDate() / 7) === parseInt(w);
-                          
+                    <div className="p-5">
+                      <div className="grid grid-cols-7 gap-1">
+                        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => {
+                          const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                          const active = streetDetails.raw[dayNames[i] as keyof StreetData] === 't';
                           return (
-                            <div key={w} className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${
-                              isActive 
-                                ? 'bg-slate-900 border-slate-900 text-white shadow-sm' 
-                                : 'bg-slate-50 border-slate-100 text-slate-300'
-                            } ${isCurrentWeek && !isActive ? 'border-dashed border-slate-300' : ''}`}>
-                              Week {w}
-                              {isCurrentWeek && <span className="ml-1.5 opacity-50 text-[9px] uppercase tracking-tighter">(Current)</span>}
+                            <div key={i} className={`h-12 flex items-center justify-center rounded-xl font-bold transition-all ${
+                              active ? 'bg-[#007AFF] text-white shadow-sm' : 'bg-[#F2F2F7] text-[#C7C7CC]'
+                            }`}>
+                              {d}
                             </div>
                           )
                         })}
@@ -632,78 +482,70 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Google Map Card */}
-                  <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 overflow-hidden h-72 relative border border-slate-200 group">
-                    {isGeocoding && (
-                      <div className="absolute inset-0 z-10 bg-white/70 flex items-center justify-center backdrop-blur-sm">
-                        <Loader2 className="animate-spin text-blue-600 w-10 h-10" />
-                      </div>
-                    )}
+                  {/* Map (Apple Maps Style) */}
+                  <div className="bg-white rounded-3xl overflow-hidden h-64 border border-white shadow-sm relative group">
+                    {isGeocoding && <div className="absolute inset-0 z-10 bg-white/50 backdrop-blur-sm flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" /></div>}
                     {coords.length > 0 ? (
-                      <Map
-                        defaultCenter={coords[0]}
-                        defaultZoom={17}
-                        gestureHandling={'greedy'}
-                        disableDefaultUI={true}
-                        className="w-full h-full grayscale-[0.2] contrast-[1.05]"
+                      <Map 
+                        defaultCenter={coords[0]} 
+                        center={coords[0]}
+                        defaultZoom={17} 
+                        gestureHandling={'greedy'} 
+                        disableDefaultUI={true} 
+                        className="w-full h-full grayscale-[0.1] contrast-[1.05]"
                       >
                         <Marker position={coords[0]} />
                         <Marker position={coords[1]} />
                         <Polyline
                           path={coords}
-                          strokeColor="#2563eb"
-                          strokeOpacity={0.9}
-                          strokeWeight={8}
+                          strokeColor="#007AFF"
+                          strokeOpacity={0.8}
+                          strokeWeight={6}
                         />
                       </Map>
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-                        <div className="flex flex-col items-center gap-3 opacity-30 group-hover:opacity-50 transition-opacity">
-                          <MapIcon className="w-12 h-12" />
-                          <p className="font-black uppercase tracking-widest text-xs">Map Unavailable</p>
-                        </div>
-                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center bg-[#F2F2F7]"><MapIcon className="w-10 h-10 text-[#C7C7CC]" /></div>
                     )}
                   </div>
-
                 </div>
               )}
             </div>
           ) : (
-            /* Empty State / How it works */
-            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200 fill-mode-both">
-              <div className="grid gap-4 md:grid-cols-3">
-                {[
-                  { icon: Search, title: "1. Search", desc: "Find your street name", color: "blue" },
-                  { icon: Calendar, title: "2. Select", desc: "Pick your exact block", color: "indigo" },
-                  { icon: Truck, title: "3. Check", desc: "Get real-time status", color: "violet" }
-                ].map((step, i) => (
-                  <div key={i} className="flex flex-col items-center text-center gap-4 p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm hover:shadow-md transition-shadow">
-                    <div className={`p-4 bg-${step.color}-50 text-${step.color}-600 rounded-2xl ring-4 ring-${step.color}-50/50`}>
-                      <step.icon className="w-7 h-7" />
-                    </div>
-                    <div className="space-y-1.5">
-                      <h4 className="font-bold text-slate-800 text-lg">{step.title}</h4>
-                      <p className="text-sm text-slate-500 font-medium leading-relaxed">{step.desc}</p>
-                    </div>
+            <div className="grid gap-4 sm:grid-cols-3 pt-4">
+              {[
+                { icon: Search, title: "Search", color: "#007AFF" },
+                { icon: MapPin, title: "Locate", color: "#34C759" },
+                { icon: Clock, title: "Alerts", color: "#FF9500" }
+              ].map((item, i) => (
+                <div key={i} className="bg-white p-6 rounded-3xl text-center space-y-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto" style={{ backgroundColor: `${item.color}15`, color: item.color }}>
+                    <item.icon className="w-6 h-6" />
                   </div>
-                ))}
-              </div>
-
-              <div className="relative overflow-hidden bg-slate-900 rounded-[2rem] p-8 md:p-10 text-center shadow-2xl">
-                {/* Abstract bg pattern */}
-                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent bg-[length:20px_20px]"></div>
-                
-                <div className="relative z-10 space-y-3">
-                  <h3 className="text-white font-black text-2xl tracking-tight">Stay Ticket-Free</h3>
-                  <p className="text-slate-400 font-medium text-base md:text-lg max-w-sm mx-auto">
-                    Boston Sweeper analyzes municipal data to keep your car safe from street sweeping tickets.
-                  </p>
+                  <h4 className="font-bold text-sm">{item.title}</h4>
                 </div>
-              </div>
+              ))}
             </div>
           )}
         </main>
+
+        <footer className="max-w-lg mx-auto px-5 py-12 text-center space-y-4">
+          <div className="flex items-center justify-center gap-2 text-[#8E8E93] font-medium text-sm">
+            <span>Created by Robert Frontend</span>
+            <span className="opacity-30">•</span>
+            <a 
+              href="https://github.com/robertfrontend/boston-street-cleaning" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 hover:text-[#007AFF] transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 33.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+              <span>GitHub</span>
+            </a>
+          </div>
+          <p className="text-[#AEAEB2] text-[10px] font-bold uppercase tracking-widest">
+            Boston Municipal Data © 2026
+          </p>
+        </footer>
       </div>
     </APIProvider>
   );
