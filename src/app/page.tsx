@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
-import { Loader2, ChevronRight } from 'lucide-react';
+import { Loader2, ChevronRight, Info } from 'lucide-react';
 import Papa from 'papaparse';
 import { APIProvider } from '@vis.gl/react-google-maps';
 
@@ -13,6 +13,7 @@ import { ScheduleCard } from '@/components/features/ScheduleCard';
 import { MapPreview } from '@/components/features/MapPreview';
 import { OnboardingGrid } from '@/components/features/OnboardingGrid';
 import { Footer } from '@/components/layout/Footer';
+import { LocationModal } from '@/components/features/LocationModal';
 
 // Types & Utils
 import { StreetData, StreetDetails } from '@/types/street';
@@ -34,6 +35,11 @@ export default function Home() {
   const [coords, setCoords] = useState<{lat: number, lng: number}[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Location Modal State
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [nearbyStreets, setNearbyStreets] = useState<string[]>([]);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   // Load CSV data
   useEffect(() => {
@@ -183,18 +189,46 @@ export default function Home() {
   };
 
   const handleLocationClick = () => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      if (!window.google) return;
-      const geocoder = new google.maps.Geocoder();
-      const latlng = { lat: position.coords.latitude, lng: position.coords.longitude };
-      geocoder.geocode({ location: latlng }, (results, status) => {
-        if (status === "OK" && results?.[0]) {
-          const route = results[0].address_components.find((c) => c.types.includes("route"));
-          if (route) handleSelectStreet(route.long_name);
-        }
-      });
-    });
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+    
+    setIsLocationModalOpen(true);
+    setIsDetectingLocation(true);
+    setNearbyStreets([]);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        if (!window.google) return;
+        const geocoder = new google.maps.Geocoder();
+        const latlng = { lat: position.coords.latitude, lng: position.coords.longitude };
+        
+        geocoder.geocode({ location: latlng }, (results, status) => {
+          if (status === "OK" && results) {
+            // Extract multiple unique street names from results
+            const streets = Array.from(new Set(
+              results
+                .map(res => {
+                  const route = res.address_components.find(c => c.types.includes("route"));
+                  return route ? route.long_name : null;
+                })
+                .filter((name): name is string => name !== null)
+            )).slice(0, 5);
+            
+            setNearbyStreets(streets);
+          }
+          setIsDetectingLocation(false);
+        });
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        setIsDetectingLocation(false);
+        setIsLocationModalOpen(false);
+        alert("Could not detect your location. Please check your browser permissions.");
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const clearSearch = () => {
@@ -325,6 +359,16 @@ export default function Home() {
                 </div>
               )}
 
+              {!selectedSegmentId && !allStreets.some(s => s.st_name === selectedStreet) && (
+                <div className="bg-white rounded-3xl p-10 text-center space-y-4 shadow-sm">
+                  <div className="w-16 h-16 bg-[#F2F2F7] rounded-full flex items-center justify-center mx-auto">
+                    <Info className="w-8 h-8 text-[#8E8E93]" />
+                  </div>
+                  <h3 className="text-xl font-bold">{selectedStreet}</h3>
+                  <p className="text-[#8E8E93] font-medium">No cleaning schedule found for this location.</p>
+                </div>
+              )}
+
               {streetDetails && (
                 <div className="space-y-6">
                   <StatusBanner streetDetails={streetDetails} />
@@ -337,6 +381,15 @@ export default function Home() {
             <OnboardingGrid />
           )}
         </main>
+        
+        <LocationModal 
+          isOpen={isLocationModalOpen}
+          onClose={() => setIsLocationModalOpen(false)}
+          nearbyStreets={nearbyStreets}
+          onSelectStreet={handleSelectStreet}
+          isLoading={isDetectingLocation}
+        />
+
         <Footer />
       </div>
     </APIProvider>
