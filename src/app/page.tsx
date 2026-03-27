@@ -280,7 +280,23 @@ export default function Home() {
       .filter(day => sideData[day as keyof StreetData] === 't')
       .map(day => day.charAt(0).toUpperCase() + day.slice(1) + 's');
     
-    const specificDaysText = activeDays.length > 0 ? `Every ${activeDays.join(' & ')}` : 'No scheduled cleaning';
+    const activeWeeks = ['1', '2', '3', '4', '5']
+      .filter(w => sideData[`week_${w}` as keyof StreetData] === 't');
+    
+    const weeksText = activeWeeks.length === 5 
+      ? 'Every week' 
+      : activeWeeks.length > 0 
+        ? `${activeWeeks.map(w => {
+            if (w === '1') return '1st';
+            if (w === '2') return '2nd';
+            if (w === '3') return '3rd';
+            return `${w}th`;
+          }).join(' & ')} weeks`
+        : '';
+
+    const specificDaysText = activeDays.length > 0 
+      ? `Every ${activeDays.join(' & ')}${weeksText ? ` (${weeksText})` : ''}`
+      : 'No scheduled cleaning';
 
     let status: 'danger' | 'safe' | 'info' = isSweepingToday ? 'danger' : 'safe';
     let message = isSweepingToday ? 'Move Your Car' : 'Safe to Park';
