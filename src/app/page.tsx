@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Info, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Map as MapIcon, Clock, Calendar, ShieldCheck } from 'lucide-react';
+import Image from 'next/image';
+import { Search, Info, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Map as MapIcon, Clock, Calendar, Truck } from 'lucide-react';
 import Papa from 'papaparse';
 import { APIProvider, Map, Marker, Polyline } from '@vis.gl/react-google-maps';
 
@@ -165,9 +166,15 @@ export default function Home() {
       <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-20">
         <main className="max-w-md mx-auto px-6 pt-16 space-y-12">
           {/* Hero Section */}
-          <div className="text-center space-y-4">
-            <div className="inline-flex p-3 bg-blue-500 rounded-2xl shadow-lg shadow-blue-200 mb-2">
-              <ShieldCheck className="w-8 h-8 text-white" />
+          <div className="text-center space-y-6">
+            <div className="relative w-32 h-32 mx-auto">
+              <Image 
+                src="/new-logo.png" 
+                alt="Boston Sweeper Logo" 
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
             <div className="space-y-2">
               <h1 className="text-4xl font-black tracking-tighter text-slate-800">Boston Sweeper</h1>
@@ -313,7 +320,7 @@ export default function Home() {
                   {[
                     { icon: Search, title: "Search", desc: "Type your street name above", color: "blue" },
                     { icon: Calendar, title: "Select", desc: "Choose your side and block", color: "emerald" },
-                    { icon: ShieldCheck, title: "Park Safely", desc: "Get instant status for today", color: "amber" }
+                    { icon: Truck, title: "Park Safely", desc: "Get instant status for today", color: "amber" }
                   ].map((step, i) => (
                     <div key={i} className="flex items-center gap-5 p-5 bg-white rounded-3xl shadow-sm">
                       <div className={`p-4 bg-${step.color}-50 rounded-2xl`}>
