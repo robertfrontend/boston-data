@@ -14,6 +14,7 @@ import { MapPreview } from '@/components/features/MapPreview';
 import { OnboardingGrid } from '@/components/features/OnboardingGrid';
 import { Footer } from '@/components/layout/Footer';
 import { LocationModal } from '@/components/features/LocationModal';
+import { WelcomePermissionModal } from '@/components/features/WelcomePermissionModal';
 
 // Types & Utils
 import { StreetData, StreetDetails } from '@/types/street';
@@ -41,8 +42,17 @@ export default function Home() {
   const [nearbyStreets, setNearbyStreets] = useState<string[]>([]);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
+  // Welcome Modal State
+  const [isWelcomeModalOpen, setIsWelcomeModalOpen] = useState(false);
+
   // Load CSV data
   useEffect(() => {
+    // Check if user has already seen the welcome modal
+    const hasSeenWelcome = localStorage.getItem('boston_sweeper_welcome_seen');
+    if (!hasSeenWelcome) {
+      setIsWelcomeModalOpen(true);
+    }
+
     const loadData = async () => {
       try {
         const response = await fetch('/data/tmp_9ctv8zh.csv');
@@ -225,10 +235,18 @@ export default function Home() {
         console.error("Geolocation error:", error);
         setIsDetectingLocation(false);
         setIsLocationModalOpen(false);
-        alert("Could not detect your location. Please check your browser permissions.");
+        if (error.code !== error.PERMISSION_DENIED) {
+          alert("Could not detect your location. Please check your browser permissions.");
+        }
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const handleAcceptPermission = () => {
+    setIsWelcomeModalOpen(false);
+    localStorage.setItem('boston_sweeper_welcome_seen', 'true');
+    handleLocationClick();
   };
 
   const clearSearch = () => {
@@ -388,6 +406,15 @@ export default function Home() {
           nearbyStreets={nearbyStreets}
           onSelectStreet={handleSelectStreet}
           isLoading={isDetectingLocation}
+        />
+
+        <WelcomePermissionModal 
+          isOpen={isWelcomeModalOpen}
+          onClose={() => {
+            setIsWelcomeModalOpen(false);
+            localStorage.setItem('boston_sweeper_welcome_seen', 'true');
+          }}
+          onAccept={handleAcceptPermission}
         />
 
         <Footer />
