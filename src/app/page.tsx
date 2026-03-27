@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
-import { Loader2, ChevronRight, Info } from 'lucide-react';
+import { Loader2, ChevronRight, Info, MapPin } from 'lucide-react';
 import Papa from 'papaparse';
 import { APIProvider } from '@vis.gl/react-google-maps';
 
@@ -47,12 +47,6 @@ export default function Home() {
 
   // Load CSV data
   useEffect(() => {
-    // Check if user has already seen the welcome modal
-    const hasSeenWelcome = localStorage.getItem('boston_sweeper_welcome_seen');
-    if (!hasSeenWelcome) {
-      setIsWelcomeModalOpen(true);
-    }
-
     const loadData = async () => {
       try {
         const response = await fetch('/data/tmp_9ctv8zh.csv');
@@ -203,6 +197,13 @@ export default function Home() {
       alert("Geolocation is not supported by your browser");
       return;
     }
+
+    // Check if user has already seen/accepted the welcome permission modal
+    const hasSeenWelcome = localStorage.getItem('boston_sweeper_welcome_seen');
+    if (!hasSeenWelcome) {
+      setIsWelcomeModalOpen(true);
+      return;
+    }
     
     setIsLocationModalOpen(true);
     setIsDetectingLocation(true);
@@ -246,7 +247,10 @@ export default function Home() {
   const handleAcceptPermission = () => {
     setIsWelcomeModalOpen(false);
     localStorage.setItem('boston_sweeper_welcome_seen', 'true');
-    handleLocationClick();
+    // Small delay to let the modal close before the system prompt
+    setTimeout(() => {
+      handleLocationClick();
+    }, 300);
   };
 
   const clearSearch = () => {
@@ -412,7 +416,21 @@ export default function Home() {
               )}
             </div>
           ) : (
-            <OnboardingGrid />
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <button
+                onClick={handleLocationClick}
+                className="w-full bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center space-y-4 border border-white/50"
+              >
+                <div className="w-16 h-16 bg-[#34C759]/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <MapPin className="w-8 h-8 text-[#34C759]" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold text-black">Find Schedules Near Me</h3>
+                  <p className="text-[#8E8E93] font-medium text-sm">Automatically detect your current street block</p>
+                </div>
+              </button>
+              <OnboardingGrid />
+            </div>
           )}
         </main>
         
