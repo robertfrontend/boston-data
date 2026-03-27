@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
-import { Search, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Map as MapIcon, Clock, Calendar, Truck, X, MapPin } from 'lucide-react';
+import { Search, AlertTriangle, CheckCircle2, Loader2, ChevronRight, Map as MapIcon, Clock, Calendar, Truck, X, MapPin, Info } from 'lucide-react';
 import Papa from 'papaparse';
 import { APIProvider, Map, Marker, Polyline } from '@vis.gl/react-google-maps';
 
@@ -41,6 +41,8 @@ export default function Home() {
   const [selectedSide, setSelectedSide] = useState<'Odd' | 'Even'>('Odd');
   const [isLoading, setIsLoading] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [coords, setCoords] = useState<{lat: number, lng: number}[]>([]);
   const [isGeocoding, setIsGeocoding] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -66,6 +68,52 @@ export default function Home() {
     };
     loadData();
   }, []);
+
+  // API Autocomplete for all Boston streets
+  useEffect(() => {
+    const trimmedQuery = searchQuery.trim();
+    // Start searching immediately from the first character
+    if (!trimmedQuery || trimmedQuery.length < 1 || trimmedQuery === selectedStreet) {
+      setSuggestions([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      setIsSearching(true);
+      try {
+        const resourceId = '6fa7932b-7bc8-42bc-9250-168d5f5dc1ad';
+        const url = `https://data.boston.gov/api/3/action/datastore_search?resource_id=${resourceId}&q=${encodeURIComponent(trimmedQuery)}&limit=15&fields=ST_NAME,ST_TYPE,PRE_DIR,SUF_DIR`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+          const records = data.result.records as any[];
+          const uniqueNames = Array.from(new Set(records
+            .map(r => {
+              const name = (r.ST_NAME || '').trim();
+              if (!name) return '';
+              const type = (r.ST_TYPE || '').trim();
+              const pre = r.PRE_DIR ? `${r.PRE_DIR.trim()} ` : '';
+              const suf = r.SUF_DIR ? ` ${r.SUF_DIR.trim()}` : '';
+              return `${pre}${name} ${type}${suf}`.trim();
+            })
+            .filter(name => name.length > 0)
+          )).slice(0, 8);
+          
+          setSuggestions(uniqueNames as string[]);
+        }
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchSuggestions, 50); // Near-instant debounce
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, selectedStreet]);
 
   // Close suggestions on click outside
   useEffect(() => {
@@ -125,24 +173,48 @@ export default function Home() {
     fetchRoute();
   }, [selectedSegmentId, allStreets]);
 
-  const suggestions = useMemo(() => {
-    if (!searchQuery.trim() || selectedStreet === searchQuery) return [];
-    const query = searchQuery.toLowerCase();
-    return Array.from(new Set(
-      allStreets.filter(s => s.st_name.toLowerCase().includes(query)).map(s => s.st_name)
-    )).slice(0, 6);
-  }, [searchQuery, allStreets, selectedStreet]);
-
   const handleSelectStreet = (name: string) => {
-    setSelectedStreet(name);
-    setSearchQuery(name);
+    if (!name) return;
+    // Helper to normalize street names for better matching
+    const normalize = (s: string) => s.toLowerCase()
+      .replace(/\bstreet\b/g, 'st')
+      .replace(/\bavenue\b/g, 'ave')
+      .replace(/\bplace\b/g, 'pl')
+      .replace(/\broad\b/g, 'rd')
+      .replace(/\bparkway\b/g, 'pkwy')
+      .replace(/\bboulevard\b/g, 'blvd')
+      .replace(/\bterrace\b/g, 'ter')
+      .replace(/\bcourt\b/g, 'ct')
+      .replace(/\blane\b/g, 'ln')
+      .replace(/\bcircle\b/g, 'cir')
+      .replace(/\bsquare\b/g, 'sq')
+      .replace(/[^\w\s]/g, '')
+      .trim();
+
+    const normalizedSelected = normalize(name);
+    
+    // Find the closest match in our local cleaning database
+    const localMatch = allStreets.find(s => normalize(s.st_name) === normalizedSelected) 
+                     || allStreets.find(s => normalize(s.st_name).includes(normalizedSelected))
+                     || allStreets.find(s => normalizedSelected.includes(normalize(s.st_name)));
+
+    const streetNameToUse = localMatch ? localMatch.st_name : name;
+
+    setSelectedStreet(streetNameToUse);
+    setSearchQuery(streetNameToUse);
     setShowSuggestions(false);
-    const rows = allStreets.filter(s => s.st_name === name);
-    const side = rows.find(s => s.side === 'Odd') ? 'Odd' : 'Even';
-    setSelectedSide(side);
-    const segments = rows.filter(s => s.side === side);
-    if (segments.length === 1) setSelectedSegmentId(segments[0].main_id);
-    else setSelectedSegmentId(null);
+    setSuggestions([]);
+    
+    const rows = allStreets.filter(s => s.st_name === streetNameToUse);
+    if (rows.length > 0) {
+      const side = rows.find(s => s.side === 'Odd') ? 'Odd' : 'Even';
+      setSelectedSide(side);
+      const segments = rows.filter(s => s.side === side);
+      if (segments.length === 1) setSelectedSegmentId(segments[0].main_id);
+      else setSelectedSegmentId(null);
+    } else {
+      setSelectedSegmentId(null);
+    }
   };
 
   const handleSearch = (e?: React.FormEvent) => {
@@ -174,38 +246,7 @@ export default function Home() {
             );
             if (routeComponent) {
               const streetName = routeComponent.long_name;
-              
-              // Helper to normalize street names for better matching
-              const normalize = (s: string) => s.toLowerCase()
-                .replace(/\bstreet\b/g, 'st')
-                .replace(/\bavenue\b/g, 'ave')
-                .replace(/\bplace\b/g, 'pl')
-                .replace(/\broad\b/g, 'rd')
-                .replace(/\bparkway\b/g, 'pkwy')
-                .replace(/\bboulevard\b/g, 'blvd')
-                .replace(/\bterrace\b/g, 'ter')
-                .replace(/\bcourt\b/g, 'ct')
-                .replace(/\blane\b/g, 'ln')
-                .replace(/\bcircle\b/g, 'cir')
-                .replace(/\bsquare\b/g, 'sq')
-                .replace(/[^\w\s]/g, '')
-                .trim();
-
-              const normalizedSearch = normalize(streetName);
-              
-              const match = allStreets.find(s => {
-                const normalizedItem = normalize(s.st_name);
-                return normalizedItem === normalizedSearch || 
-                       normalizedSearch.startsWith(normalizedItem) ||
-                       normalizedItem.startsWith(normalizedSearch);
-              });
-
-              if (match) {
-                handleSelectStreet(match.st_name);
-              } else {
-                setSearchQuery(streetName);
-                setShowSuggestions(true);
-              }
+              handleSelectStreet(streetName);
             }
           }
         });
@@ -221,6 +262,7 @@ export default function Home() {
     setSelectedStreet(null);
     setSelectedSegmentId(null);
     setShowSuggestions(false);
+    setSuggestions([]);
     setCoords([]);
   };
 
@@ -330,7 +372,11 @@ export default function Home() {
           <div className="relative z-50 animate-in fade-in zoom-in-95 duration-500" ref={searchContainerRef}>
             <form onSubmit={handleSearch} className="relative group">
               <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none z-10">
-                <Search className={`w-5 h-5 transition-colors ${searchQuery ? 'text-blue-500' : 'text-slate-400'}`} />
+                {isSearching ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                ) : (
+                  <Search className={`w-5 h-5 transition-colors ${searchQuery ? 'text-blue-500' : 'text-slate-400'}`} />
+                )}
               </div>
               <input
                 type="text"
@@ -386,21 +432,23 @@ export default function Home() {
               {/* Controls & Navigation */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 {/* Segmented Control */}
-                <div className="flex p-1 bg-white border border-slate-200/60 rounded-xl shadow-sm w-full sm:w-auto">
-                  {['Odd', 'Even'].map(side => (
-                    <button 
-                      key={side} 
-                      onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
-                      className={`flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
-                        selectedSide === side 
-                          ? 'bg-slate-900 text-white shadow-md' 
-                          : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                      }`}
-                    >
-                      {side} Side
-                    </button>
-                  ))}
-                </div>
+                {allStreets.some(s => s.st_name === selectedStreet) && (
+                  <div className="flex p-1 bg-white border border-slate-200/60 rounded-xl shadow-sm w-full sm:w-auto">
+                    {['Odd', 'Even'].map(side => (
+                      <button 
+                        key={side} 
+                        onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
+                        className={`flex-1 sm:flex-none px-6 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${
+                          selectedSide === side 
+                            ? 'bg-slate-900 text-white shadow-md' 
+                            : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                        }`}
+                      >
+                        {side} Side
+                      </button>
+                    ))}
+                  </div>
+                )}
                 
                 {/* Back Button (if looking at details) */}
                 {selectedSegmentId && (
@@ -415,7 +463,7 @@ export default function Home() {
               </div>
 
               {/* View 1: Block Selection */}
-              {!selectedSegmentId && (
+              {!selectedSegmentId && allStreets.some(s => s.st_name === selectedStreet) && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-300">
                   <div className="flex items-center gap-2 px-1">
                     <div className="h-px bg-slate-200 flex-1"></div>
@@ -450,6 +498,25 @@ export default function Home() {
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* View 3: No Schedule Found */}
+              {!selectedSegmentId && !allStreets.some(s => s.st_name === selectedStreet) && (
+                <div className="text-center space-y-6 py-12 animate-in fade-in zoom-in-95 duration-500">
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Info className="w-10 h-10 text-slate-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight">{selectedStreet}</h3>
+                    <p className="text-slate-500 font-medium max-w-xs mx-auto">No street sweeping schedule found for this location in our database.</p>
+                  </div>
+                  <button 
+                    onClick={clearSearch}
+                    className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+                  >
+                    Try another street
+                  </button>
                 </div>
               )}
 
