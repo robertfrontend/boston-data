@@ -1,12 +1,22 @@
 'use client';
 
 import React from 'react';
+import { Heart } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
     <footer className="max-w-lg mx-auto px-5 py-12 text-center space-y-4">
       <div className="flex items-center justify-center gap-2 text-[#8E8E93] dark:text-[#98989D] font-medium text-sm">
-        <span>Created by Robert Frontend</span>
+        <a 
+          href="https://linkedin.com/in/robertfrontend" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hover:text-[#007AFF] transition-colors flex items-center gap-1"
+        >
+          <span>Created with</span>
+          <Heart className="w-3.5 h-3.5 fill-[#FF3B30] text-[#FF3B30]" />
+          <span>by robertfrontend</span>
+        </a>
         <span className="opacity-30">•</span>
         <a 
           href="https://github.com/robertfrontend/boston-street-cleaning" 

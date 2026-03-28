@@ -385,20 +385,25 @@ export default function Home() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-col gap-4">
                 {allStreets.some(s => s.st_name === selectedStreet) && (
-                  <div className="bg-[#E3E3E8] dark:bg-[#1C1C1E] p-1 rounded-xl flex transition-colors">
-                    {['Odd', 'Even'].map(side => (
-                      <button 
-                        key={side} 
-                        onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
-                        className={`flex-1 py-1.5 text-sm font-semibold rounded-[9px] transition-all ${
-                          selectedSide === side 
-                            ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-black dark:text-white' 
-                            : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white'
-                        }`}
-                      >
-                        {side} Side
-                      </button>
-                    ))}
+                  <div className="space-y-2">
+                    <div className="bg-[#E3E3E8] dark:bg-[#1C1C1E] p-1 rounded-xl flex transition-colors">
+                      {['Odd', 'Even'].map(side => (
+                        <button 
+                          key={side} 
+                          onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
+                          className={`flex-1 py-1.5 text-sm font-semibold rounded-[9px] transition-all ${
+                            selectedSide === side 
+                              ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-black dark:text-white' 
+                              : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white'
+                          }`}
+                        >
+                          {side} Side
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-[#8E8E93] dark:text-[#98989D] text-center font-medium px-2">
+                      Check the house numbers: <span className="text-black dark:text-white font-bold">Odd</span> (1, 3, 5) or <span className="text-black dark:text-white font-bold">Even</span> (2, 4, 6)
+                    </p>
                   </div>
                 )}
                 
