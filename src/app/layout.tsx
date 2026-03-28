@@ -14,8 +14,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Boston Sweeper | Street Sweeping Schedule",
-  description: "Check street sweeping schedules in Boston quickly.",
+  title: "Boston Sweeper | Official Street Cleaning Schedule & Alerts",
+  description: "Avoid parking tickets in Boston. Get real-time street sweeping schedules, winter season alerts, and precise cleaning times for every block in Boston.",
+  keywords: ["Boston street cleaning", "street sweeping schedule Boston", "Boston parking tickets", "parking alerts Boston", "Boston municipal data"],
+  authors: [{ name: "Robert Frontend" }],
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  openGraph: {
+    title: "Boston Sweeper | Never Get a Parking Ticket Again",
+    description: "The fastest way to check street cleaning schedules in Boston. Real-time API integration and precise location detection.",
+    url: "https://boston-sweeper.vercel.app",
+    siteName: "Boston Sweeper",
+    images: [
+      {
+        url: "/new-logo.png",
+        width: 800,
+        height: 800,
+        alt: "Boston Sweeper Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Boston Sweeper | Street Cleaning Schedule",
+    description: "Avoid parking tickets in Boston with real-time street sweeping alerts.",
+    images: ["/new-logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

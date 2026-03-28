@@ -5,17 +5,23 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Explicitly tell Tailwind 4 to use the .dark class */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #F2F2F7;
   --foreground: #000000;
+  color-scheme: light;
 }
 
 .dark {
   --background: #000000;
   --foreground: #ffffff;
+  color-scheme: dark;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

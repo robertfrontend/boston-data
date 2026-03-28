@@ -333,6 +333,24 @@ export default function Home() {
 
   return (
     <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            "name": "Boston Sweeper",
+            "description": "Real-time street cleaning schedule and parking alerts for Boston.",
+            "applicationCategory": "Utility",
+            "operatingSystem": "All",
+            "url": "https://boston-sweeper.vercel.app",
+            "author": {
+              "@type": "Person",
+              "name": "Robert Frontend"
+            }
+          })
+        }}
+      />
       <div className="min-h-screen font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] pb-24 transition-colors duration-300">
         <main className="max-w-lg mx-auto px-5 pt-12 space-y-8">
           
@@ -427,17 +445,24 @@ export default function Home() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <button
                 onClick={handleLocationClick}
-                className="w-full bg-white dark:bg-[#1C1C1E] p-8 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center space-y-4 border border-white/50 dark:border-white/5"
+                className="w-full bg-white dark:bg-[#1C1C1E] p-8 rounded-[2.5rem] shadow-sm hover:shadow-md active:scale-[0.98] transition-all group flex flex-col items-center text-center space-y-6 border border-black/5 dark:border-white/5 relative overflow-hidden"
               >
-                <div className="w-16 h-16 bg-[#34C759]/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <MapPin className="w-8 h-8 text-[#34C759]" />
+                <div className="w-20 h-20 bg-[#34C759]/10 rounded-[2rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ease-out">
+                  <MapPin className="w-10 h-10 text-[#34C759]" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-black dark:text-white transition-colors">Find Schedules Near Me</h3>
-                  <p className="text-[#8E8E93] dark:text-[#98989D] font-medium text-sm transition-colors">Automatically detect your current street block</p>
+                
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-extrabold text-black dark:text-white tracking-tight">Schedules Near Me</h3>
+                  <p className="text-[#8E8E93] dark:text-[#98989D] font-medium text-sm max-w-[240px] mx-auto leading-relaxed">
+                    Automatically detect your street and check for upcoming cleaning.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 px-6 py-3 bg-[#007AFF] text-white rounded-full font-bold text-sm shadow-lg shadow-[#007AFF]/20 group-hover:bg-[#0062CC] transition-all">
+                  <span>Use Current Location</span>
+                  <ChevronRight className="w-4 h-4" />
                 </div>
               </button>
-              <OnboardingGrid />
             </div>
           )}
         </main>

@@ -15,9 +15,7 @@ export function ThemeToggle() {
   if (!mounted) return <div className="w-10 h-10" />;
 
   const toggleTheme = () => {
-    const current = resolvedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    const nextTheme = current === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
   return (
