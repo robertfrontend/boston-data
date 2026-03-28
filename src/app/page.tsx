@@ -15,6 +15,7 @@ import { OnboardingGrid } from '@/components/features/OnboardingGrid';
 import { Footer } from '@/components/layout/Footer';
 import { LocationModal } from '@/components/features/LocationModal';
 import { WelcomePermissionModal } from '@/components/features/WelcomePermissionModal';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 // Types & Utils
 import { StreetData, StreetDetails } from '@/types/street';
@@ -324,7 +325,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F2F2F7]">
+      <div className="min-h-screen flex flex-col items-center justify-center transition-colors duration-300">
         <Loader2 className="w-8 h-8 animate-spin text-[#007AFF]" />
       </div>
     );
@@ -332,15 +333,20 @@ export default function Home() {
 
   return (
     <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
-      <div className="min-h-screen bg-[#F2F2F7] font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] text-black pb-24">
+      <div className="min-h-screen font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] pb-24 transition-colors duration-300">
         <main className="max-w-lg mx-auto px-5 pt-12 space-y-8">
           
-          <header className="text-center space-y-2">
+          <header className="flex flex-col items-center text-center space-y-4 relative">
+            <div className="absolute top-0 right-0">
+              <ThemeToggle />
+            </div>
             <div className="relative w-20 h-20 mx-auto opacity-90">
               <Image src="/new-logo.png" alt="Boston Sweeper" fill className="object-contain" priority />
             </div>
-            <h1 className="text-3xl font-bold tracking-tight">Boston Sweeper</h1>
-            <p className="text-[#8E8E93] text-lg font-medium">Never get a ticket again.</p>
+            <div className="space-y-1">
+              <h1 className="text-3xl font-bold tracking-tight">Boston Sweeper</h1>
+              <p className="text-[#8E8E93] dark:text-[#98989D] text-lg font-medium transition-colors">Never get a ticket again.</p>
+            </div>
           </header>
 
           <SearchBar 
@@ -361,13 +367,15 @@ export default function Home() {
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-col gap-4">
                 {allStreets.some(s => s.st_name === selectedStreet) && (
-                  <div className="bg-[#E3E3E8] p-1 rounded-xl flex">
+                  <div className="bg-[#E3E3E8] dark:bg-[#1C1C1E] p-1 rounded-xl flex transition-colors">
                     {['Odd', 'Even'].map(side => (
                       <button 
                         key={side} 
                         onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
                         className={`flex-1 py-1.5 text-sm font-semibold rounded-[9px] transition-all ${
-                          selectedSide === side ? 'bg-white shadow-sm text-black' : 'text-[#8E8E93] hover:text-[#1C1C1E]'
+                          selectedSide === side 
+                            ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-black dark:text-white' 
+                            : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white'
                         }`}
                       >
                         {side} Side
@@ -384,26 +392,26 @@ export default function Home() {
               </div>
 
               {!selectedSegmentId && allStreets.some(s => s.st_name === selectedStreet) && (
-                <div className="bg-white rounded-2xl overflow-hidden divide-y divide-[#F2F2F7] shadow-sm">
+                <div className="bg-white dark:bg-[#1C1C1E] rounded-2xl overflow-hidden divide-y divide-[#F2F2F7] dark:divide-[#2C2C2E] shadow-sm border border-black/5 dark:border-white/5 transition-colors">
                   {allStreets.filter(s => s.st_name === selectedStreet && s.side === selectedSide).map(seg => (
-                    <button key={seg.main_id} onClick={() => setSelectedSegmentId(seg.main_id)} className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7] transition-all">
+                    <button key={seg.main_id} onClick={() => setSelectedSegmentId(seg.main_id)} className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-all">
                       <div className="text-left">
-                        <p className="font-bold text-[#1C1C1E]">{seg.from} to {seg.to}</p>
-                        <p className="text-xs text-[#8E8E93] font-medium uppercase tracking-wide">{seg.dist_name}</p>
+                        <p className="font-bold text-[#1C1C1E] dark:text-white">{seg.from} to {seg.to}</p>
+                        <p className="text-xs text-[#8E8E93] dark:text-[#98989D] font-medium uppercase tracking-wide">{seg.dist_name}</p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-[#C7C7CC]" />
+                      <ChevronRight className="w-5 h-5 text-[#C7C7CC] dark:text-[#48484A]" />
                     </button>
                   ))}
                 </div>
               )}
 
               {!selectedSegmentId && !allStreets.some(s => s.st_name === selectedStreet) && (
-                <div className="bg-white rounded-3xl p-10 text-center space-y-4 shadow-sm">
-                  <div className="w-16 h-16 bg-[#F2F2F7] rounded-full flex items-center justify-center mx-auto">
+                <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-10 text-center space-y-4 shadow-sm border border-black/5 dark:border-white/5 transition-colors">
+                  <div className="w-16 h-16 bg-[#F2F2F7] dark:bg-[#2C2C2E] rounded-full flex items-center justify-center mx-auto transition-colors">
                     <Info className="w-8 h-8 text-[#8E8E93]" />
                   </div>
-                  <h3 className="text-xl font-bold">{selectedStreet}</h3>
-                  <p className="text-[#8E8E93] font-medium">No cleaning schedule found for this location.</p>
+                  <h3 className="text-xl font-bold dark:text-white transition-colors">{selectedStreet}</h3>
+                  <p className="text-[#8E8E93] dark:text-[#98989D] font-medium transition-colors">No cleaning schedule found for this location.</p>
                 </div>
               )}
 
@@ -419,14 +427,14 @@ export default function Home() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <button
                 onClick={handleLocationClick}
-                className="w-full bg-white p-8 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center space-y-4 border border-white/50"
+                className="w-full bg-white dark:bg-[#1C1C1E] p-8 rounded-[2.5rem] shadow-sm hover:shadow-md transition-all group flex flex-col items-center text-center space-y-4 border border-white/50 dark:border-white/5"
               >
                 <div className="w-16 h-16 bg-[#34C759]/10 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                   <MapPin className="w-8 h-8 text-[#34C759]" />
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-xl font-bold text-black">Find Schedules Near Me</h3>
-                  <p className="text-[#8E8E93] font-medium text-sm">Automatically detect your current street block</p>
+                  <h3 className="text-xl font-bold text-black dark:text-white transition-colors">Find Schedules Near Me</h3>
+                  <p className="text-[#8E8E93] dark:text-[#98989D] font-medium text-sm transition-colors">Automatically detect your current street block</p>
                 </div>
               </button>
               <OnboardingGrid />

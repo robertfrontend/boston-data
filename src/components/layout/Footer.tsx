@@ -5,7 +5,7 @@ import React from 'react';
 export const Footer: React.FC = () => {
   return (
     <footer className="max-w-lg mx-auto px-5 py-12 text-center space-y-4">
-      <div className="flex items-center justify-center gap-2 text-[#8E8E93] font-medium text-sm">
+      <div className="flex items-center justify-center gap-2 text-[#8E8E93] dark:text-[#98989D] font-medium text-sm">
         <span>Created by Robert Frontend</span>
         <span className="opacity-30">•</span>
         <a 
@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
           <span>GitHub</span>
         </a>
       </div>
-      <p className="text-[#AEAEB2] text-[10px] font-bold uppercase tracking-widest">
+      <p className="text-[#AEAEB2] dark:text-[#636366] text-[10px] font-bold uppercase tracking-widest">
         Boston Municipal Data © 2026
       </p>
     </footer>

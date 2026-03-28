@@ -33,9 +33,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-lg bg-[#F2F2F7] sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300">
-        <div className="flex items-center justify-between p-5 border-b border-[#C7C7CC]/30 bg-white/80 backdrop-blur-md">
-          <h3 className="text-lg font-bold text-black">{title}</h3>
+      <div className="relative w-full max-w-lg bg-[#F2F2F7] dark:bg-[#1C1C1E] sm:rounded-3xl rounded-t-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300 border border-black/5 dark:border-white/10 transition-colors">
+        <div className="flex items-center justify-between p-5 border-b border-[#C7C7CC]/30 dark:border-[#3A3A3C]/50 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-md">
+          <h3 className="text-lg font-bold text-black dark:text-white">{title}</h3>
           <button 
             onClick={onClose}
             className="p-1.5 bg-[#8E8E93]/20 rounded-full text-[#8E8E93] hover:bg-[#8E8E93]/30 transition-colors"

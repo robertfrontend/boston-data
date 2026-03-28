@@ -28,7 +28,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
             <p className="text-[#8E8E93] font-medium">Detecting your location...</p>
           </div>
         ) : nearbyStreets.length > 0 ? (
-          <div className="bg-white rounded-2xl overflow-hidden divide-y divide-[#F2F2F7] shadow-sm">
+          <div className="bg-white dark:bg-[#2C2C2E] rounded-2xl overflow-hidden divide-y divide-[#F2F2F7] dark:divide-[#3A3A3C] shadow-sm border border-black/5 dark:border-white/5 transition-colors">
             {nearbyStreets.map((street, index) => (
               <button
                 key={index}
@@ -36,13 +36,13 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                   onSelectStreet(street);
                   onClose();
                 }}
-                className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7] transition-all group"
+                className="w-full p-4 flex items-center justify-between hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] transition-all group"
               >
                 <div className="flex items-center gap-3 text-left">
                   <div className="w-8 h-8 rounded-full bg-[#34C759]/10 flex items-center justify-center">
                     <MapPin className="w-4 h-4 text-[#34C759]" />
                   </div>
-                  <span className="font-bold text-[#1C1C1E]">{street}</span>
+                  <span className="font-bold text-[#1C1C1E] dark:text-white">{street}</span>
                 </div>
                 <ChevronRight className="w-5 h-5 text-[#C7C7CC] group-hover:text-[#007AFF] transition-colors" />
               </button>
