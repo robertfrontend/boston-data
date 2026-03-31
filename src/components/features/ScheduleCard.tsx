@@ -1,7 +1,8 @@
 'use client';
 
-import { Calendar, Truck } from 'lucide-react';
+import { Calendar, Truck, CalendarPlus } from 'lucide-react';
 import { StreetDetails, StreetData } from '@/types/street';
+import { downloadICS } from '@/lib/utils';
 
 interface ScheduleCardProps {
   streetDetails: StreetDetails;
@@ -58,6 +59,14 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ streetDetails }) => 
             })}
           </div>
         </div>
+
+        <button 
+          onClick={() => downloadICS(streetDetails.raw)}
+          className="w-full py-4 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#007AFF] rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+        >
+          <CalendarPlus className="w-4 h-4" />
+          Add to My Calendar
+        </button>
       </div>
     </div>
   );
