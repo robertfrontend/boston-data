@@ -313,6 +313,7 @@ export default function Home() {
 
     return {
       name: sideData.st_name,
+      district: sideData.dist_name,
       status,
       message,
       nextSweeping: `${formatTime12h(sideData.start_time)} - ${formatTime12h(sideData.end_time)}`,

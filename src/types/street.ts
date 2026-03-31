@@ -24,6 +24,7 @@ export interface StreetData {
 
 export interface StreetDetails {
   name: string;
+  district: string;
   status: 'danger' | 'safe' | 'info';
   message: string;
   nextSweeping: string;

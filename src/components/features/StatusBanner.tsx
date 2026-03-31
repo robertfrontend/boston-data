@@ -28,6 +28,9 @@ export const StatusBanner: React.FC<StatusBannerProps> = ({ streetDetails }) => 
       <div className="flex flex-col items-center text-center space-y-4">
         {getStatusIcon()}
         <div className="space-y-1">
+          <div className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-bold uppercase tracking-wider mb-1">
+            {streetDetails.district}
+          </div>
           <h2 className="text-3xl font-extrabold tracking-tight">{streetDetails.message}</h2>
           <p className="text-white/80 font-medium">{streetDetails.name}</p>
         </div>
