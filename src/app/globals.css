@@ -1,8 +1,27 @@
 @import "tailwindcss";
+@source "../";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-mono, monospace;
+
+  /* Apple-inspired System Colors */
+  --color-system-blue: #007AFF;
+  --color-system-green: #34C759;
+  --color-system-orange: #FF9500;
+  --color-system-red: #FF3B30;
+  --color-system-indigo: #5856D6;
+  --color-system-purple: #AF52DE;
+  --color-system-pink: #FF2D55;
+  --color-system-teal: #5AC8FA;
+  --color-system-yellow: #FFCC00;
+
+  /* Semantic UI Colors */
+  --color-app-bg: var(--background);
+  --color-app-fg: var(--foreground);
+  --color-app-secondary-text: var(--gray);
+  --color-app-card: var(--card-bg);
+  --color-app-border: var(--border);
 }
 
 /* Explicitly tell Tailwind 4 to use the .dark class */
@@ -11,12 +30,22 @@
 :root {
   --background: #F2F2F7;
   --foreground: #000000;
+  --gray: #8E8E93;
+  --gray-2: #AEAEB2;
+  --gray-3: #C7C7CC;
+  --card-bg: #FFFFFF;
+  --border: rgba(0, 0, 0, 0.05);
   color-scheme: light;
 }
 
 .dark {
   --background: #000000;
-  --foreground: #ffffff;
+  --foreground: #FFFFFF;
+  --gray: #98989D;
+  --gray-2: #636366;
+  --gray-3: #48484A;
+  --card-bg: #1C1C1E;
+  --border: rgba(255, 255, 255, 0.05);
   color-scheme: dark;
 }
 
@@ -24,4 +53,47 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@layer utilities {
+  .animate-in {
+    animation-fill-mode: both;
+    animation-duration: 1000ms;
+  }
+
+  .fade-in {
+    animation-name: fadeIn;
+  }
+
+  .slide-in-from-top-4 {
+    animation-name: slideInFromTop;
+  }
+
+  .slide-in-from-bottom-4 {
+    animation-name: slideInFromBottom;
+  }
+
+  .slide-in-from-bottom-8 {
+    animation-name: slideInFromBottomEight;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInFromTop {
+  from { transform: translateY(-1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  from { transform: translateY(1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromBottomEight {
+  from { transform: translateY(2rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }

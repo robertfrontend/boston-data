@@ -27,7 +27,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     <Link 
       href={href}
       aria-disabled={disabled}
-      className={`block bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl shadow-sm border border-black/5 dark:border-white/5 transition-all ${
+      className={`block bg-app-card p-6 rounded-3xl shadow-sm border border-app-border transition-all ${
         disabled 
           ? 'opacity-60 cursor-not-allowed pointer-events-none' 
           : 'hover:shadow-md active:scale-[0.98] group'
@@ -39,16 +39,16 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         </div>
         <div className="flex-1 space-y-1.5 pt-1">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-bold dark:text-white">{title}</h3>
+            <h3 className="text-xl font-bold">{title}</h3>
             {!disabled && (
-              <ChevronRight className="w-5 h-5 text-[#C7C7CC] dark:text-[#48484A] group-hover:text-[#007AFF] transition-colors" aria-hidden="true" />
+              <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-system-blue transition-colors" aria-hidden="true" />
             )}
           </div>
-          <p className="text-sm text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
+          <p className="text-sm text-app-secondary-text font-medium leading-relaxed">
             {description}
           </p>
           {tag && (
-            <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-[#FF3B30]/10 text-[#FF3B30] text-[10px] font-bold uppercase tracking-wider">
+            <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-system-red/10 text-system-red text-[10px] font-bold uppercase tracking-wider">
               {tag}
             </span>
           )}
