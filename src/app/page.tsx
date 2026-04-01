@@ -97,39 +97,43 @@ export default function HubPage() {
           </div>
         </section>
 
-        {/* Value Proposition Grid */}
-        <section className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
-          <div className="bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl border border-black/5 dark:border-white/5 flex gap-4 transition-colors">
+        {/* Value Proposition Section */}
+        <section className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200">
+          <div className="flex gap-6 items-start">
             <div className="w-12 h-12 rounded-2xl bg-[#34C759]/10 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-6 h-6 text-[#34C759]" />
             </div>
-            <div className="space-y-1">
-              <h4 className="font-bold">Avoid Penalties</h4>
-              <p className="text-sm text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
+            <div className="space-y-1.5 pt-1.5">
+              <h4 className="text-lg font-bold dark:text-white">Avoid Penalties</h4>
+              <p className="text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
                 Stay updated with street cleaning and parking rules to save money on tickets.
               </p>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl border border-black/5 dark:border-white/5 flex gap-4 transition-colors">
+          <div className="h-px bg-black/[0.03] dark:bg-white/5 w-full" />
+
+          <div className="flex gap-6 items-start">
             <div className="w-12 h-12 rounded-2xl bg-[#FF9500]/10 flex items-center justify-center shrink-0">
               <Zap className="w-6 h-6 text-[#FF9500]" />
             </div>
-            <div className="space-y-1">
-              <h4 className="font-bold">Real-Time Data</h4>
-              <p className="text-sm text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
+            <div className="space-y-1.5 pt-1.5">
+              <h4 className="text-lg font-bold dark:text-white">Real-Time Data</h4>
+              <p className="text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
                 Direct integration with official Boston Open Data APIs for 100% accuracy.
               </p>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl border border-black/5 dark:border-white/5 flex gap-4 transition-colors">
+          <div className="h-px bg-black/[0.03] dark:bg-white/5 w-full" />
+
+          <div className="flex gap-6 items-start">
             <div className="w-12 h-12 rounded-2xl bg-[#5856D6]/10 flex items-center justify-center shrink-0">
               <Globe className="w-6 h-6 text-[#5856D6]" />
             </div>
-            <div className="space-y-1">
-              <h4 className="font-bold">One Platform</h4>
-              <p className="text-sm text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
+            <div className="space-y-1.5 pt-1.5">
+              <h4 className="text-lg font-bold dark:text-white">One Platform</h4>
+              <p className="text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
                 All essential city services consolidated into a single, beautiful dashboard.
               </p>
             </div>
