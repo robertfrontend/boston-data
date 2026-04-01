@@ -33,3 +33,19 @@ export interface StreetDetails {
   specificDays: string;
   raw: StreetData;
 }
+
+export interface FoodInspection {
+  _id: number;
+  businessname: string;
+  dbaname?: string;
+  licstatus: string;
+  descript: string;
+  result: string;
+  resultdttm: string;
+  violdesc?: string;
+  comments?: string;
+  address: string;
+  city: string;
+  zip: string;
+  location?: string;
+}
