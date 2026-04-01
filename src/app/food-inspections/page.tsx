@@ -29,6 +29,50 @@ export default function FoodInspectionsPage() {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
+  // Fetch random businesses on load
+  useEffect(() => {
+    const fetchRandomBusinesses = async () => {
+      setIsSearching(true);
+      try {
+        const resourceId = '4582bec6-2b4f-4f9e-bc55-cbaa73117f4c';
+        // Fetch random active inspections, then we group them
+        const sql = `SELECT * from "${resourceId}" WHERE "licstatus" = 'Active' ORDER BY random() LIMIT 30`;
+        const url = `https://data.boston.gov/api/3/action/datastore_search_sql?sql=${encodeURIComponent(sql)}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+          const records: FoodInspection[] = data.result.records;
+          const groups: Record<string, GroupedBusiness> = {};
+          
+          records.forEach(record => {
+            const key = `${record.licenseno || record.businessname}-${record.address}`;
+            if (!groups[key]) {
+              groups[key] = {
+                licenseNo: record.licenseno || 'N/A',
+                name: record.businessname,
+                address: record.address,
+                city: record.city,
+                inspections: []
+              };
+            }
+            groups[key].inspections.push(record);
+          });
+
+          // Take only first 5 grouped businesses
+          setGroupedBusinesses(Object.values(groups).slice(0, 5));
+        }
+      } catch (error) {
+        console.error("Error fetching random food inspections:", error);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    fetchRandomBusinesses();
+  }, []);
+
   // Autocomplete logic
   useEffect(() => {
     const trimmedQuery = searchQuery.trim();
@@ -176,7 +220,12 @@ export default function FoodInspectionsPage() {
         />
 
         <div className="space-y-4">
-          {isSearching ? (
+          {isSearching && !hasSearched ? (
+            <div className="py-20 text-center space-y-4">
+              <Loader2 className="w-8 h-8 animate-spin text-[#007AFF] mx-auto" />
+              <p className="text-[#8E8E93] font-medium animate-pulse">Loading featured restaurants...</p>
+            </div>
+          ) : isSearching ? (
             <div className="py-20 text-center space-y-4">
               <Loader2 className="w-8 h-8 animate-spin text-[#007AFF] mx-auto" />
               <p className="text-[#8E8E93] font-medium animate-pulse">Searching and grouping records...</p>
@@ -184,7 +233,7 @@ export default function FoodInspectionsPage() {
           ) : groupedBusinesses.length > 0 ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <h2 className="text-sm font-bold text-[#8E8E93] dark:text-[#98989D] uppercase tracking-widest px-2">
-                Restaurants Found ({groupedBusinesses.length})
+                {hasSearched ? `Restaurants Found (${groupedBusinesses.length})` : 'Featured Restaurants'}
               </h2>
               <div className="grid gap-4">
                 {groupedBusinesses.map((business) => (

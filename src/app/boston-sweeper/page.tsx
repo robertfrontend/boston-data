@@ -319,11 +319,11 @@ export default function BostonSweeperPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebApplication",
-            "name": "Boston Sweeper",
+            "name": "Boston Hub",
             "description": "Real-time street cleaning schedule and parking alerts for Boston.",
             "applicationCategory": "Utility",
             "operatingSystem": "All",
-            "url": "https://boston-sweeper.vercel.app",
+            "url": "https://boston-hub.vercel.app",
             "author": { "@type": "Person", "name": "robertfrontend" }
           })
         }}

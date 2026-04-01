@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import { MapPin, Bus, Car, Utensils, ShieldCheck, Zap, Globe, ArrowRight } from 'lucide-react';
+import { MapPin, Bus, Car, Utensils, ShieldCheck, Zap, Globe, ArrowRight, LayoutGrid } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/layout/Footer';
 import { ServiceCard } from '@/components/features/hub/ServiceCard';
@@ -62,8 +61,8 @@ export default function HubPage() {
       <nav className="fixed top-0 left-0 right-0 z-[60] bg-white/70 dark:bg-black/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/5">
         <div className="max-w-lg mx-auto px-5 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 relative">
-              <Image src="/new-logo.png" alt="Logo" fill className="object-contain" />
+            <div className="w-8 h-8 flex items-center justify-center bg-[#007AFF] rounded-lg shadow-sm">
+              <LayoutGrid className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-sm tracking-tight">Boston Hub</span>
           </div>
@@ -76,8 +75,11 @@ export default function HubPage() {
         {/* Hero Section */}
         <section className="text-center space-y-6 animate-in fade-in slide-in-from-top-4 duration-1000">
           <div className="space-y-3">
+            <div className="w-24 h-24 bg-[#007AFF] rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-[#007AFF]/20">
+              <LayoutGrid className="w-12 h-12 text-white" />
+            </div>
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight leading-[1.1]">
-              Live Smarter in <span className="text-[#007AFF]">Boston</span>.
+              Everything <span className="text-[#007AFF]">Boston</span>.
             </h1>
             <p className="text-[#8E8E93] dark:text-[#98989D] text-lg md:text-xl font-medium max-w-[320px] mx-auto leading-snug transition-colors">
               Access real-time municipal data to navigate the city like a pro.
@@ -149,12 +151,12 @@ export default function HubPage() {
 
         {/* About Data Section */}
         <section className="bg-[#E3E3E8] dark:bg-[#1C1C1E] rounded-[2.5rem] p-8 text-center space-y-4 transition-colors border border-black/5 dark:border-white/5">
-          <div className="w-12 h-12 bg-white dark:bg-[#2C2C2E] rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+          <div className="w-12 h-12 bg-white dark:bg-[#2C2C2E] rounded-2xl flex items-center justify-center mx-auto shadow-sm transition-colors">
             <Globe className="w-6 h-6 text-[#007AFF]" />
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-bold">Powered by Analyze Boston</h3>
-            <p className="text-[#8E8E93] dark:text-[#98989D] text-sm font-medium leading-relaxed">
+            <p className="text-[#8E8E93] dark:text-[#98989D] text-sm font-medium leading-relaxed transition-colors">
               We leverage official municipal data provided by the City of Boston's Open Data portal to provide residents with reliable, up-to-date information.
             </p>
           </div>
