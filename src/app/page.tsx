@@ -87,46 +87,37 @@ export default function HubPage() {
         </section>
 
         {/* Value Proposition Section */}
-        <section className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200" aria-labelledby="value-proposition">
+        <section className="grid grid-cols-3 gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200" aria-labelledby="value-proposition">
           <h2 id="value-proposition" className="sr-only">Why use Boston Hub?</h2>
-          <div className="flex gap-6 items-start">
-            <div className="w-12 h-12 rounded-2xl bg-system-green/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-6 h-6 text-system-green" aria-hidden="true" />
+          
+          <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/50 dark:bg-white/5 border border-app-border">
+            <div className="w-10 h-10 rounded-xl bg-system-green/10 flex items-center justify-center mb-2">
+              <ShieldCheck className="w-5 h-5 text-system-green" aria-hidden="true" />
             </div>
-            <div className="space-y-1.5 pt-1.5">
-              <h3 className="text-lg font-bold">Avoid Penalties</h3>
-              <p className="text-app-secondary-text font-medium leading-relaxed">
-                Stay updated with street cleaning and parking rules to save money on tickets.
-              </p>
-            </div>
+            <h3 className="text-[13px] font-bold leading-tight mb-1">Avoid Fines</h3>
+            <p className="text-[11px] text-app-secondary-text font-medium leading-tight">
+              Real-time sweeping alerts
+            </p>
           </div>
 
-          <div className="h-px bg-app-border w-full" role="presentation" />
-
-          <div className="flex gap-6 items-start">
-            <div className="w-12 h-12 rounded-2xl bg-system-orange/10 flex items-center justify-center shrink-0">
-              <Zap className="w-6 h-6 text-system-orange" aria-hidden="true" />
+          <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/50 dark:bg-white/5 border border-app-border">
+            <div className="w-10 h-10 rounded-xl bg-system-orange/10 flex items-center justify-center mb-2">
+              <Zap className="w-5 h-5 text-system-orange" aria-hidden="true" />
             </div>
-            <div className="space-y-1.5 pt-1.5">
-              <h3 className="text-lg font-bold">Real-Time Data</h3>
-              <p className="text-app-secondary-text font-medium leading-relaxed">
-                Direct integration with official Boston Open Data APIs for 100% accuracy.
-              </p>
-            </div>
+            <h3 className="text-[13px] font-bold leading-tight mb-1">Live Data</h3>
+            <p className="text-[11px] text-app-secondary-text font-medium leading-tight">
+              100% official sources
+            </p>
           </div>
 
-          <div className="h-px bg-app-border w-full" role="presentation" />
-
-          <div className="flex gap-6 items-start">
-            <div className="w-12 h-12 rounded-2xl bg-system-indigo/10 flex items-center justify-center shrink-0">
-              <Globe className="w-6 h-6 text-system-indigo" aria-hidden="true" />
+          <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/50 dark:bg-white/5 border border-app-border">
+            <div className="w-10 h-10 rounded-xl bg-system-indigo/10 flex items-center justify-center mb-2">
+              <Globe className="w-5 h-5 text-system-indigo" aria-hidden="true" />
             </div>
-            <div className="space-y-1.5 pt-1.5">
-              <h3 className="text-lg font-bold">One Platform</h3>
-              <p className="text-app-secondary-text font-medium leading-relaxed">
-                All essential city services consolidated into a single, beautiful dashboard.
-              </p>
-            </div>
+            <h3 className="text-[13px] font-bold leading-tight mb-1">One Hub</h3>
+            <p className="text-[11px] text-app-secondary-text font-medium leading-tight">
+              All city services in one
+            </p>
           </div>
         </section>
 
