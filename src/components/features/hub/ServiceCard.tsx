@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { ChevronRight, LucideIcon } from 'lucide-react';
@@ -30,7 +28,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       href={href}
       className={`block bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl shadow-sm border border-black/5 dark:border-white/5 transition-all ${
         disabled 
-          ? 'opacity-60 cursor-not-allowed' 
+          ? 'opacity-60 cursor-not-allowed pointer-events-none' 
           : 'hover:shadow-md active:scale-[0.98] group'
       }`}
     >

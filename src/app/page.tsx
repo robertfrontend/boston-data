@@ -1,10 +1,9 @@
-'use client';
-
 import React from 'react';
-import { MapPin, Bus, Car, Utensils, ShieldCheck, Zap, Globe, ArrowRight, LayoutGrid } from 'lucide-react';
+import { MapPin, Bus, Car, Utensils, ShieldCheck, Zap, Globe, LayoutGrid } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/layout/Footer';
 import { ServiceCard } from '@/components/features/hub/ServiceCard';
+import { HeroButton } from '@/components/features/hub/HeroButton';
 
 const services = [
   {
@@ -50,10 +49,6 @@ const services = [
 ];
 
 export default function HubPage() {
-  const scrollToServices = () => {
-    document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] text-black dark:text-white transition-colors duration-300">
       
@@ -87,13 +82,7 @@ export default function HubPage() {
           </div>
           
           <div className="pt-2">
-            <button 
-              onClick={scrollToServices}
-              className="px-8 py-4 bg-[#007AFF] text-white rounded-2xl font-bold text-lg hover:bg-[#0062CC] active:scale-95 transition-all shadow-xl shadow-[#007AFF]/25 flex items-center gap-2 mx-auto"
-            >
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </button>
+            <HeroButton />
           </div>
         </section>
 
