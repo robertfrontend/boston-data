@@ -38,6 +38,7 @@ export interface FoodInspection {
   _id: number;
   businessname: string;
   dbaname?: string;
+  licenseno?: string;
   licstatus: string;
   descript: string;
   result: string;

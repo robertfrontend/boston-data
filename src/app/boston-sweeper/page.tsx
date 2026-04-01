@@ -8,15 +8,14 @@ import Papa from 'papaparse';
 import { APIProvider } from '@vis.gl/react-google-maps';
 
 // Components
-import { SearchBar } from '@/components/features/SearchBar';
-import { StatusBanner } from '@/components/features/StatusBanner';
-import { ScheduleCard } from '@/components/features/ScheduleCard';
-import { MapPreview } from '@/components/features/MapPreview';
-import { OnboardingGrid } from '@/components/features/OnboardingGrid';
-import { Footer } from '@/components/layout/Footer';
-import { LocationModal } from '@/components/features/LocationModal';
-import { WelcomePermissionModal } from '@/components/features/WelcomePermissionModal';
+import { SearchBar } from '@/components/features/boston-sweeper/SearchBar';
+import { StatusBanner } from '@/components/features/boston-sweeper/StatusBanner';
+import { ScheduleCard } from '@/components/features/boston-sweeper/ScheduleCard';
+import { MapPreview } from '@/components/features/boston-sweeper/MapPreview';
+import { LocationModal } from '@/components/features/boston-sweeper/LocationModal';
+import { WelcomePermissionModal } from '@/components/features/boston-sweeper/WelcomePermissionModal';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { Footer } from '@/components/layout/Footer';
 
 // Types & Utils
 import { StreetData, StreetDetails } from '@/types/street';
@@ -25,7 +24,7 @@ import { normalizeStreetName, formatTime12h } from '@/lib/utils';
 // --- CONFIGURATION ---
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''; 
 
-export default function Home() {
+export default function BostonSweeperPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [allStreets, setAllStreets] = useState<StreetData[]>([]);
   const [selectedStreet, setSelectedStreet] = useState<string | null>(null);
@@ -200,7 +199,6 @@ export default function Home() {
       return;
     }
 
-    // Check if user has already seen/accepted the welcome permission modal
     const hasSeenWelcome = localStorage.getItem('boston_sweeper_welcome_seen');
     if (!hasSeenWelcome) {
       setIsWelcomeModalOpen(true);
@@ -219,7 +217,6 @@ export default function Home() {
         
         geocoder.geocode({ location: latlng }, (results, status) => {
           if (status === "OK" && results) {
-            // Extract multiple unique street names from results
             const streets = Array.from(new Set(
               results
                 .map(res => {
@@ -228,18 +225,17 @@ export default function Home() {
                 })
                 .filter((name): name is string => name !== null)
             )).slice(0, 5);
-            
             setNearbyStreets(streets);
           }
           setIsDetectingLocation(false);
         });
       },
       (error) => {
-        console.error("Geolocation error:", error);
+        console.error(error);
         setIsDetectingLocation(false);
         setIsLocationModalOpen(false);
         if (error.code !== error.PERMISSION_DENIED) {
-          alert("Could not detect your location. Please check your browser permissions.");
+          alert("Could not detect your location.");
         }
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -249,10 +245,7 @@ export default function Home() {
   const handleAcceptPermission = () => {
     setIsWelcomeModalOpen(false);
     localStorage.setItem('boston_sweeper_welcome_seen', 'true');
-    // Small delay to let the modal close before the system prompt
-    setTimeout(() => {
-      handleLocationClick();
-    }, 300);
+    setTimeout(() => handleLocationClick(), 300);
   };
 
   const clearSearch = () => {
@@ -286,27 +279,12 @@ export default function Home() {
       .filter(day => sideData[day as keyof StreetData] === 't')
       .map(day => day.charAt(0).toUpperCase() + day.slice(1) + 's');
     
-    const activeWeeks = ['1', '2', '3', '4', '5']
-      .filter(w => sideData[`week_${w}` as keyof StreetData] === 't');
-    
-    const weeksText = activeWeeks.length === 5 
-      ? 'Every week' 
-      : activeWeeks.length > 0 
-        ? `${activeWeeks.map(w => {
-            if (w === '1') return '1st';
-            if (w === '2') return '2nd';
-            if (w === '3') return '3rd';
-            return `${w}th`;
-          }).join(' & ')} weeks`
-        : '';
-
-    const specificDaysText = activeDays.length > 0 
-      ? `Every ${activeDays.join(' & ')}${weeksText ? ` (${weeksText})` : ''}`
-      : 'No scheduled cleaning';
+    const activeWeeks = ['1', '2', '3', '4', '5'].filter(w => sideData[`week_${w}` as keyof StreetData] === 't');
+    const weeksText = activeWeeks.length === 5 ? 'Every week' : activeWeeks.length > 0 ? `${activeWeeks.map(w => w === '1' ? '1st' : w === '2' ? '2nd' : w === '3' ? '3rd' : `${w}th`).join(' & ')} weeks` : '';
+    const specificDaysText = activeDays.length > 0 ? `Every ${activeDays.join(' & ')}${weeksText ? ` (${weeksText})` : ''}` : 'No scheduled cleaning';
 
     let status: 'danger' | 'safe' | 'info' = isSweepingToday ? 'danger' : 'safe';
     let message = isSweepingToday ? 'Move Your Car' : 'Safe to Park';
-    
     if (!isCurrentlyInSeason && scheduledForToday) {
       status = 'info';
       message = `Starts ${isExtendedArea ? 'March 1st' : 'April 1st'}`;
@@ -346,10 +324,7 @@ export default function Home() {
             "applicationCategory": "Utility",
             "operatingSystem": "All",
             "url": "https://boston-sweeper.vercel.app",
-            "author": {
-              "@type": "Person",
-              "name": "Robert Frontend"
-            }
+            "author": { "@type": "Person", "name": "robertfrontend" }
           })
         }}
       />
@@ -358,7 +333,7 @@ export default function Home() {
           
           <header className="flex flex-col items-center text-center space-y-4 relative">
             <div className="absolute top-0 left-0">
-              <Link href="/" className="p-2.5 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-all border border-black/5 dark:border-white/10 shadow-sm" aria-label="Back to Hub">
+              <Link href="/" className="p-2.5 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-all border border-black/5 dark:border-white/10 shadow-sm">
                 <ChevronLeft className="w-5 h-5 text-black dark:text-white" />
               </Link>
             </div>
@@ -399,9 +374,7 @@ export default function Home() {
                           key={side} 
                           onClick={() => {setSelectedSide(side as 'Odd'|'Even'); setSelectedSegmentId(null);}} 
                           className={`flex-1 py-1.5 text-sm font-semibold rounded-[9px] transition-all ${
-                            selectedSide === side 
-                              ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-black dark:text-white' 
-                              : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white'
+                            selectedSide === side ? 'bg-white dark:bg-[#3A3A3C] shadow-sm text-black dark:text-white' : 'text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white'
                           }`}
                         >
                           {side} Side
@@ -409,7 +382,7 @@ export default function Home() {
                       ))}
                     </div>
                     <p className="text-[11px] text-[#8E8E93] dark:text-[#98989D] text-center font-medium px-2">
-                      Check the house numbers: <span className="text-black dark:text-white font-bold">Odd</span> (1, 3, 5) or <span className="text-black dark:text-white font-bold">Even</span> (2, 4, 6)
+                      Check numbers: <span className="font-bold text-black dark:text-white">Odd</span> (1, 3, 5) or <span className="font-bold text-black dark:text-white">Even</span> (2, 4, 6)
                     </p>
                   </div>
                 )}
@@ -435,16 +408,6 @@ export default function Home() {
                 </div>
               )}
 
-              {!selectedSegmentId && !allStreets.some(s => s.st_name === selectedStreet) && (
-                <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-10 text-center space-y-4 shadow-sm border border-black/5 dark:border-white/5 transition-colors">
-                  <div className="w-16 h-16 bg-[#F2F2F7] dark:bg-[#2C2C2E] rounded-full flex items-center justify-center mx-auto transition-colors">
-                    <Info className="w-8 h-8 text-[#8E8E93]" />
-                  </div>
-                  <h3 className="text-xl font-bold dark:text-white transition-colors">{selectedStreet}</h3>
-                  <p className="text-[#8E8E93] dark:text-[#98989D] font-medium transition-colors">No cleaning schedule found for this location.</p>
-                </div>
-              )}
-
               {streetDetails && (
                 <div className="space-y-6">
                   <StatusBanner streetDetails={streetDetails} />
@@ -457,20 +420,18 @@ export default function Home() {
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <button
                 onClick={handleLocationClick}
-                className="w-full bg-white dark:bg-[#1C1C1E] p-8 rounded-[2.5rem] shadow-sm hover:shadow-md active:scale-[0.98] transition-all group flex flex-col items-center text-center space-y-6 border border-black/5 dark:border-white/5 relative overflow-hidden"
+                className="w-full bg-white dark:bg-[#1C1C1E] p-8 rounded-[2.5rem] shadow-sm hover:shadow-md active:scale-[0.98] transition-all group flex flex-col items-center text-center space-y-6 border border-black/5 dark:border-white/5"
               >
                 <div className="w-20 h-20 bg-[#34C759]/10 rounded-[2rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ease-out">
                   <MapPin className="w-10 h-10 text-[#34C759]" />
                 </div>
-                
                 <div className="space-y-2">
                   <h3 className="text-2xl font-extrabold text-black dark:text-white tracking-tight">Schedules Near Me</h3>
                   <p className="text-[#8E8E93] dark:text-[#98989D] font-medium text-sm max-w-[240px] mx-auto leading-relaxed">
                     Automatically detect your street and check for upcoming cleaning.
                   </p>
                 </div>
-
-                <div className="flex items-center gap-2 px-6 py-3 bg-[#007AFF] text-white rounded-full font-bold text-sm shadow-lg shadow-[#007AFF]/20 group-hover:bg-[#0062CC] transition-all">
+                <div className="flex items-center gap-2 px-6 py-3 bg-[#007AFF] text-white rounded-full font-bold text-sm shadow-lg group-hover:bg-[#0062CC] transition-all">
                   <span>Use Current Location</span>
                   <ChevronRight className="w-4 h-4" />
                 </div>
@@ -479,23 +440,8 @@ export default function Home() {
           )}
         </main>
         
-        <LocationModal 
-          isOpen={isLocationModalOpen}
-          onClose={() => setIsLocationModalOpen(false)}
-          nearbyStreets={nearbyStreets}
-          onSelectStreet={handleSelectStreet}
-          isLoading={isDetectingLocation}
-        />
-
-        <WelcomePermissionModal 
-          isOpen={isWelcomeModalOpen}
-          onClose={() => {
-            setIsWelcomeModalOpen(false);
-            localStorage.setItem('boston_sweeper_welcome_seen', 'true');
-          }}
-          onAccept={handleAcceptPermission}
-        />
-
+        <LocationModal isOpen={isLocationModalOpen} onClose={() => setIsLocationModalOpen(false)} nearbyStreets={nearbyStreets} onSelectStreet={handleSelectStreet} isLoading={isDetectingLocation} />
+        <WelcomePermissionModal isOpen={isWelcomeModalOpen} onClose={() => { setIsWelcomeModalOpen(false); localStorage.setItem('boston_sweeper_welcome_seen', 'true'); }} onAccept={handleAcceptPermission} />
         <Footer />
       </div>
     </APIProvider>

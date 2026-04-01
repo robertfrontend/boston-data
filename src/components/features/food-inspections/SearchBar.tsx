@@ -3,7 +3,7 @@
 import React from 'react';
 import { Search, Loader2, X, Utensils } from 'lucide-react';
 
-interface FoodSearchBarProps {
+interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   isSearching: boolean;
@@ -11,7 +11,7 @@ interface FoodSearchBarProps {
   clearSearch: () => void;
 }
 
-export const FoodSearchBar: React.FC<FoodSearchBarProps> = ({
+export const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   setSearchQuery,
   isSearching,

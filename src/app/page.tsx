@@ -1,9 +1,11 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Map, MapPin, Bus, Car, Ticket, Navigation, ChevronRight, Utensils } from 'lucide-react';
+import { MapPin, Bus, Car, Utensils } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/layout/Footer';
+import { ServiceCard } from '@/components/features/hub/ServiceCard';
 
 const services = [
   {
@@ -48,9 +50,9 @@ const services = [
   }
 ];
 
-export default function Home() {
+export default function HubPage() {
   return (
-    <div className="min-h-screen font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] pb-24 transition-colors duration-300">
+    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] text-black dark:text-white pb-24 transition-colors duration-300">
       <main className="max-w-lg mx-auto px-5 pt-12 space-y-10">
         
         {/* Header */}
@@ -58,7 +60,7 @@ export default function Home() {
           <div className="absolute top-0 right-0">
             <ThemeToggle />
           </div>
-          <div className="relative w-20 h-20 mx-auto opacity-90 rounded-3xl bg-white dark:bg-[#1C1C1E] shadow-sm border border-black/5 dark:border-white/5 flex items-center justify-center overflow-hidden p-2">
+          <div className="relative w-20 h-20 mx-auto opacity-90 rounded-3xl bg-white dark:bg-[#1C1C1E] shadow-sm border border-black/5 dark:border-white/5 flex items-center justify-center overflow-hidden p-2 transition-colors">
             <Image src="/new-logo.png" alt="Boston Hub" width={80} height={80} className="object-contain" priority />
           </div>
           <div className="space-y-1">
@@ -76,37 +78,7 @@ export default function Home() {
           </h2>
           <div className="grid gap-4">
             {services.map((service) => (
-              <Link 
-                key={service.id} 
-                href={service.href}
-                className={`block bg-white dark:bg-[#1C1C1E] p-6 rounded-3xl shadow-sm border border-black/5 dark:border-white/5 transition-all ${
-                  service.disabled 
-                    ? 'opacity-60 cursor-not-allowed' 
-                    : 'hover:shadow-md active:scale-[0.98] group'
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-colors ${service.iconBg}`}>
-                    <service.icon className={`w-7 h-7 ${service.iconColor}`} />
-                  </div>
-                  <div className="flex-1 space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold dark:text-white">{service.title}</h3>
-                      {!service.disabled && (
-                        <ChevronRight className="w-5 h-5 text-[#C7C7CC] dark:text-[#48484A] group-hover:text-[#007AFF] transition-colors" />
-                      )}
-                    </div>
-                    <p className="text-sm text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed">
-                      {service.description}
-                    </p>
-                    {service.tag && (
-                      <span className="inline-block mt-2 px-2.5 py-0.5 rounded-full bg-[#FF3B30]/10 text-[#FF3B30] text-[10px] font-bold uppercase tracking-wider">
-                        {service.tag}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
+              <ServiceCard key={service.id} {...service} />
             ))}
           </div>
         </div>
