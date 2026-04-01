@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   description: "Your digital gateway to Boston. Access real-time street cleaning schedules, food inspections, and municipal data in one elegant platform.",
   keywords: ["Boston Hub", "Boston street cleaning", "Boston food inspections", "Boston municipal data", "Boston city services"],
   authors: [{ name: "robertfrontend" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   openGraph: {
     title: "Boston Hub | The Digital Pulse of the City",
     description: "Access real-time municipal data and essential city services in one elegant, Apple-inspired dashboard.",
@@ -52,12 +51,34 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Boston Hub",
+    "url": "https://boston-hub.vercel.app",
+    "description": "Access real-time municipal data and essential city services in Boston.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Boston Hub",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://boston-hub.vercel.app/new-logo.png"
+      }
+    }
+  };
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className="min-h-screen antialiased transition-colors duration-300">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
