@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Loader2, Utensils, AlertCircle } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
@@ -27,51 +27,113 @@ export default function FoodInspectionsPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Fetch random businesses on load
-  useEffect(() => {
-    const fetchRandomBusinesses = async () => {
-      setIsSearching(true);
-      try {
-        const resourceId = '4582bec6-2b4f-4f9e-bc55-cbaa73117f4c';
-        // Fetch random active inspections, then we group them
-        const sql = `SELECT * from "${resourceId}" WHERE "licstatus" = 'Active' ORDER BY random() LIMIT 30`;
-        const url = `https://data.boston.gov/api/3/action/datastore_search_sql?sql=${encodeURIComponent(sql)}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.success) {
-          const records: FoodInspection[] = data.result.records;
-          const groups: Record<string, GroupedBusiness> = {};
-          
-          records.forEach(record => {
-            const key = `${record.licenseno || record.businessname}-${record.address}`;
-            if (!groups[key]) {
-              groups[key] = {
-                licenseNo: record.licenseno || 'N/A',
-                name: record.businessname,
-                address: record.address,
-                city: record.city,
-                inspections: []
-              };
-            }
-            groups[key].inspections.push(record);
-          });
+  const PAGE_SIZE = 20;
 
-          // Take only first 5 grouped businesses
-          setGroupedBusinesses(Object.values(groups).slice(0, 5));
-        }
-      } catch (error) {
-        console.error("Error fetching random food inspections:", error);
-      } finally {
-        setIsSearching(false);
+  const groupInspections = (records: FoodInspection[]) => {
+    const groups: Record<string, GroupedBusiness> = {};
+    
+    records.forEach(record => {
+      const key = `${record.licenseno || record.businessname}-${record.address}`;
+      if (!groups[key]) {
+        groups[key] = {
+          licenseNo: record.licenseno || 'N/A',
+          name: record.businessname,
+          address: record.address,
+          city: record.city,
+          inspections: []
+        };
       }
-    };
+      groups[key].inspections.push(record);
+    });
+    
+    return Object.values(groups);
+  };
 
-    fetchRandomBusinesses();
+  const fetchBusinesses = useCallback(async (query: string | null, currentOffset: number, isNewSearch: boolean) => {
+    if (isNewSearch) {
+      setIsSearching(true);
+      setGroupedBusinesses([]);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    try {
+      const resourceId = '4582bec6-2b4f-4f9e-bc55-cbaa73117f4c';
+      let sql = '';
+      
+      if (query) {
+        const fiveYearsAgo = new Date();
+        fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+        const dateLimit = fiveYearsAgo.toISOString().split('T')[0];
+        sql = `SELECT * from "${resourceId}" WHERE "businessname" = '${query.replace(/'/g, "''")}' AND "licstatus" = 'Active' AND "resultdttm" >= '${dateLimit}' ORDER BY "resultdttm" DESC LIMIT ${PAGE_SIZE} OFFSET ${currentOffset}`;
+      } else {
+        // Random featured businesses for initial load
+        sql = `SELECT * from "${resourceId}" WHERE "licstatus" = 'Active' ORDER BY "resultdttm" DESC LIMIT ${PAGE_SIZE} OFFSET ${currentOffset}`;
+      }
+
+      const url = `https://data.boston.gov/api/3/action/datastore_search_sql?sql=${encodeURIComponent(sql)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        const records: FoodInspection[] = data.result.records;
+        const newGroups = groupInspections(records);
+        
+        if (records.length < PAGE_SIZE) {
+          setHasMore(false);
+        } else {
+          setHasMore(true);
+        }
+
+        setGroupedBusinesses(prev => {
+          if (isNewSearch) return newGroups;
+          
+          // Merge avoiding duplicates (based on licenseNo and address)
+          const existingKeys = new Set(prev.map(b => `${b.licenseNo}-${b.address}`));
+          const uniqueNewGroups = newGroups.filter(b => !existingKeys.has(`${b.licenseNo}-${b.address}`));
+          
+          return [...prev, ...uniqueNewGroups];
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching food inspections:", error);
+    } finally {
+      setIsSearching(false);
+      setIsLoadingMore(false);
+    }
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    fetchBusinesses(null, 0, true);
+  }, [fetchBusinesses]);
+
+  // Intersection Observer for Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !isSearching && !isLoadingMore) {
+          const nextOffset = offset + PAGE_SIZE;
+          setOffset(nextOffset);
+          fetchBusinesses(selectedBusiness, nextOffset, false);
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isSearching, isLoadingMore, offset, selectedBusiness, fetchBusinesses]);
 
   // Autocomplete logic
   useEffect(() => {
@@ -86,7 +148,6 @@ export default function FoodInspectionsPage() {
       setIsAutocompleteLoading(true);
       try {
         const resourceId = '4582bec6-2b4f-4f9e-bc55-cbaa73117f4c';
-        // Distinct business names using SQL for better performance
         const sql = `SELECT DISTINCT "businessname" from "${resourceId}" WHERE "businessname" ILIKE '%${trimmedQuery.replace(/'/g, "''")}%' AND "licstatus" = 'Active' LIMIT 8`;
         const url = `https://data.boston.gov/api/3/action/datastore_search_sql?sql=${encodeURIComponent(sql)}`;
         
@@ -119,49 +180,13 @@ export default function FoodInspectionsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const executeSearch = async (name: string) => {
-    setIsSearching(true);
+  const executeSearch = (name: string) => {
     setHasSearched(true);
     setSelectedBusiness(name);
     setShowSuggestions(false);
-    
-    try {
-      const resourceId = '4582bec6-2b4f-4f9e-bc55-cbaa73117f4c';
-      const fiveYearsAgo = new Date();
-      fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
-      const dateLimit = fiveYearsAgo.toISOString().split('T')[0];
-
-      const sql = `SELECT * from "${resourceId}" WHERE "businessname" = '${name.replace(/'/g, "''")}' AND "licstatus" = 'Active' AND "resultdttm" >= '${dateLimit}' ORDER BY "resultdttm" DESC LIMIT 100`;
-      const url = `https://data.boston.gov/api/3/action/datastore_search_sql?sql=${encodeURIComponent(sql)}`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        const records: FoodInspection[] = data.result.records;
-        const groups: Record<string, GroupedBusiness> = {};
-        
-        records.forEach(record => {
-          const key = `${record.licenseno || record.businessname}-${record.address}`;
-          if (!groups[key]) {
-            groups[key] = {
-              licenseNo: record.licenseno || 'N/A',
-              name: record.businessname,
-              address: record.address,
-              city: record.city,
-              inspections: []
-            };
-          }
-          groups[key].inspections.push(record);
-        });
-
-        setGroupedBusinesses(Object.values(groups));
-      }
-    } catch (error) {
-      console.error("Error fetching food inspections:", error);
-    } finally {
-      setIsSearching(false);
-    }
+    setOffset(0);
+    setHasMore(true);
+    fetchBusinesses(name, 0, true);
   };
 
   const handleSearch = (e?: React.FormEvent) => {
@@ -177,31 +202,33 @@ export default function FoodInspectionsPage() {
 
   const clearSearch = () => {
     setSearchQuery('');
-    setGroupedBusinesses([]);
     setHasSearched(false);
     setSuggestions([]);
     setSelectedBusiness(null);
+    setOffset(0);
+    setHasMore(true);
+    fetchBusinesses(null, 0, true);
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] font-[-apple-system,BlinkMacSystemFont,'Segoe_UI',Roboto,Helvetica,Arial,sans-serif] text-black dark:text-white pb-24 transition-colors duration-300">
+    <div className="min-h-screen bg-app-bg font-sans text-app-fg pb-24 transition-colors duration-300">
       <main className="max-w-lg mx-auto px-5 pt-12 space-y-8">
         
         <header className="flex flex-col items-center text-center space-y-4 relative">
           <div className="absolute top-0 left-0">
-            <Link href="/" className="p-2.5 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-all border border-black/5 dark:border-white/10 shadow-sm">
-              <ChevronLeft className="w-5 h-5 text-black dark:text-white" />
+            <Link href="/" className="p-2.5 flex items-center justify-center rounded-full bg-app-card/50 backdrop-blur-sm hover:bg-app-card transition-all border border-app-border shadow-sm">
+              <ChevronLeft className="w-5 h-5" />
             </Link>
           </div>
           <div className="absolute top-0 right-0">
             <ThemeToggle />
           </div>
-          <div className="w-20 h-20 bg-[#FF9500]/10 rounded-[2rem] flex items-center justify-center transition-colors">
-            <Utensils className="w-10 h-10 text-[#FF9500]" />
+          <div className="w-20 h-20 bg-system-orange/10 rounded-[2rem] flex items-center justify-center transition-colors">
+            <Utensils className="w-10 h-10 text-system-orange" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Food Inspections</h1>
-            <p className="text-[#8E8E93] dark:text-[#98989D] text-lg font-medium transition-colors">Check restaurant safety records.</p>
+            <h1 className="text-3xl font-bold tracking-tight leading-tight">Food Inspections</h1>
+            <p className="text-app-secondary-text text-lg font-medium transition-colors">Check restaurant safety records.</p>
           </div>
         </header>
 
@@ -220,20 +247,15 @@ export default function FoodInspectionsPage() {
         />
 
         <div className="space-y-4">
-          {isSearching && !hasSearched ? (
+          {isSearching && groupedBusinesses.length === 0 ? (
             <div className="py-20 text-center space-y-4">
-              <Loader2 className="w-8 h-8 animate-spin text-[#007AFF] mx-auto" />
-              <p className="text-[#8E8E93] font-medium animate-pulse">Loading featured restaurants...</p>
-            </div>
-          ) : isSearching ? (
-            <div className="py-20 text-center space-y-4">
-              <Loader2 className="w-8 h-8 animate-spin text-[#007AFF] mx-auto" />
-              <p className="text-[#8E8E93] font-medium animate-pulse">Searching and grouping records...</p>
+              <Loader2 className="w-8 h-8 animate-spin text-system-blue mx-auto" />
+              <p className="text-app-secondary-text font-medium animate-pulse">Loading restaurants...</p>
             </div>
           ) : groupedBusinesses.length > 0 ? (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h2 className="text-sm font-bold text-[#8E8E93] dark:text-[#98989D] uppercase tracking-widest px-2">
-                {hasSearched ? `Restaurants Found (${groupedBusinesses.length})` : 'Featured Restaurants'}
+              <h2 className="text-sm font-bold text-app-secondary-text uppercase tracking-widest px-2">
+                {selectedBusiness ? `Results for ${selectedBusiness}` : 'Featured Restaurants'}
               </h2>
               <div className="grid gap-4">
                 {groupedBusinesses.map((business) => (
@@ -245,25 +267,38 @@ export default function FoodInspectionsPage() {
                   />
                 ))}
               </div>
+              
+              {/* Infinite Scroll Trigger */}
+              <div ref={observerTarget} className="py-10 text-center">
+                {isLoadingMore && (
+                  <div className="space-y-2">
+                    <Loader2 className="w-6 h-6 animate-spin text-system-blue mx-auto" />
+                    <p className="text-xs text-app-secondary-text font-bold uppercase tracking-wider">Loading more...</p>
+                  </div>
+                )}
+                {!hasMore && groupedBusinesses.length > 5 && (
+                  <p className="text-xs text-app-secondary-text font-bold uppercase tracking-wider">You've reached the end</p>
+                )}
+              </div>
             </div>
-          ) : hasSearched ? (
-            <div className="bg-white dark:bg-[#1C1C1E] rounded-3xl p-12 text-center space-y-4 border border-black/5 dark:border-white/5 animate-in zoom-in-95 duration-300 transition-colors">
-              <div className="w-16 h-16 bg-[#F2F2F7] dark:bg-[#2C2C2E] rounded-full flex items-center justify-center mx-auto transition-colors">
-                <AlertCircle className="w-8 h-8 text-[#8E8E93]" />
+          ) : hasSearched && !isSearching ? (
+            <div className="bg-app-card rounded-3xl p-12 text-center space-y-4 border border-app-border animate-in zoom-in-95 duration-300">
+              <div className="w-16 h-16 bg-app-bg rounded-full flex items-center justify-center mx-auto transition-colors">
+                <AlertCircle className="w-8 h-8 text-app-secondary-text" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xl font-bold dark:text-white">No Records Found</h3>
-                <p className="text-[#8E8E93] dark:text-[#98989D] font-medium px-4">
+                <h3 className="text-xl font-bold">No Records Found</h3>
+                <p className="text-app-secondary-text font-medium px-4">
                   We couldn't find any active inspection results for "{searchQuery}".
                 </p>
               </div>
             </div>
-          ) : (
-            <div className="bg-white dark:bg-[#1C1C1E] p-8 rounded-[2.5rem] text-center space-y-4 border border-black/5 dark:border-white/5 transition-colors">
-              <div className="w-16 h-16 bg-[#FF9500]/10 rounded-3xl flex items-center justify-center mx-auto transition-colors">
-                <Utensils className="w-8 h-8 text-[#FF9500]" />
+          ) : !isSearching && (
+            <div className="bg-app-card p-8 rounded-[2.5rem] text-center space-y-4 border border-app-border">
+              <div className="w-16 h-16 bg-system-orange/10 rounded-3xl flex items-center justify-center mx-auto transition-colors">
+                <Utensils className="w-8 h-8 text-system-orange" />
               </div>
-              <p className="text-[#8E8E93] dark:text-[#98989D] font-medium leading-relaxed transition-colors">
+              <p className="text-app-secondary-text font-medium leading-relaxed">
                 Enter a restaurant name to see their official health inspection history and results grouped by location.
               </p>
             </div>
