@@ -1,5 +1,9 @@
-import React from 'react';
-import { MapPin, Bus, Car, Utensils, ShieldCheck, Zap, Globe, LayoutGrid } from 'lucide-react';
+import type { Metadata } from 'next';
+import { MapPin, Trash2, Utensils, ShieldCheck, Zap, Globe, LayoutGrid } from 'lucide-react';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Footer } from '@/components/layout/Footer';
 import { ServiceCard } from '@/components/features/hub/ServiceCard';
@@ -27,24 +31,14 @@ const services = [
     tag: 'New'
   },
   {
-    id: 'coming-soon-1',
-    title: 'Transit Tracker',
-    description: 'Real-time MBTA tracking and delays (Coming Soon).',
-    icon: Bus,
-    iconBg: 'bg-system-blue/10',
-    iconColor: 'text-system-blue',
-    href: '#',
-    disabled: true
-  },
-  {
-    id: 'coming-soon-2',
-    title: 'Parking Meters',
-    description: 'Find available metered parking spots and rates (Coming Soon).',
-    icon: Car,
-    iconBg: 'bg-system-indigo/10',
-    iconColor: 'text-system-indigo',
-    href: '#',
-    disabled: true
+    id: 'trash-day',
+    title: 'Trash Day',
+    description: 'Look up official trash and recycling pickup days for any Boston address.',
+    icon: Trash2,
+    iconBg: 'bg-system-teal/10',
+    iconColor: 'text-system-teal',
+    href: '/trash-day',
+    tag: 'Live Data'
   }
 ];
 
@@ -142,7 +136,7 @@ export default function HubPage() {
           <div className="space-y-2">
             <h2 id="data-source-title" className="text-lg font-bold">Powered by Analyze Boston</h2>
             <p className="text-app-secondary-text text-sm font-medium leading-relaxed transition-colors">
-              We leverage official municipal data provided by the City of Boston's Open Data portal to provide residents with reliable, up-to-date information.
+              We use official municipal data from the City of Boston Open Data portal so residents can check schedules and inspection results from the city source.
             </p>
           </div>
         </section>

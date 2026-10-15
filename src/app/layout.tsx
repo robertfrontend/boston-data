@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,15 +15,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Boston Hub | Official City Services & Real-time Alerts",
-  description: "Your digital gateway to Boston. Access real-time street cleaning schedules, food inspections, and municipal data in one elegant platform.",
-  keywords: ["Boston Hub", "Boston street cleaning", "Boston food inspections", "Boston municipal data", "Boston city services"],
+  description: "Your digital gateway to Boston. Access street cleaning schedules, food inspections, trash day, and other municipal data in one place.",
+  keywords: ["Boston Hub", "Boston street cleaning", "Boston food inspections", "Boston trash day", "Boston municipal data", "Boston city services"],
   authors: [{ name: "robertfrontend" }],
   openGraph: {
     title: "Boston Hub | The Digital Pulse of the City",
-    description: "Access real-time municipal data and essential city services in one elegant, Apple-inspired dashboard.",
-    url: "https://boston-hub.vercel.app",
-    siteName: "Boston Hub",
+    description: "Street cleaning, food inspections, and trash day from official Boston open data.",
+    url: SITE_URL,
+    siteName: SITE_NAME,
     images: [
       {
         url: "/new-logo.png",
@@ -36,8 +38,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Boston Sweeper | Street Cleaning Schedule",
-    description: "Avoid parking tickets in Boston with real-time street sweeping alerts.",
+    title: "Boston Hub | City Services & Municipal Data",
+    description: "Street cleaning, food inspections, and trash day from official Boston open data.",
     images: ["/new-logo.png"],
   },
   robots: {
@@ -54,15 +56,15 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Boston Hub",
-    "url": "https://boston-hub.vercel.app",
-    "description": "Access real-time municipal data and essential city services in Boston.",
+    "name": SITE_NAME,
+    "url": SITE_URL,
+    "description": "Street cleaning, food inspections, and trash day from official Boston open data.",
     "publisher": {
       "@type": "Organization",
-      "name": "Boston Hub",
+      "name": SITE_NAME,
       "logo": {
         "@type": "ImageObject",
-        "url": "https://boston-hub.vercel.app/new-logo.png"
+        "url": `${SITE_URL}/new-logo.png`
       }
     }
   };

@@ -1,0 +1,12 @@
+Street sweeping schedules
+
+Source: Analyze Boston — Street Sweeping Schedules
+https://data.boston.gov/dataset/street-sweeping-schedules
+Resource id: 9fdbdcad-67c8-4b23-b6ec-861e77d56227
+
+Snapshot: street-sweeping-schedules.csv
+Ingested: 2026-03-27
+
+Refresh: download the CSV from that resource and replace
+public/data/street-sweeping-schedules.csv. Do not rename it back to a
+temporary export filename.

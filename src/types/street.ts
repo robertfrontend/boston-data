@@ -20,6 +20,7 @@ export interface StreetData {
   week_4: string;
   week_5: string;
   year_round?: string;
+  north_end_pilot?: string;
 }
 
 export interface StreetDetails {
@@ -28,25 +29,10 @@ export interface StreetDetails {
   status: 'danger' | 'safe' | 'info';
   message: string;
   nextSweeping: string;
+  nextDateLabel: string;
+  hasUpcoming: boolean;
   from: string;
   to: string;
   specificDays: string;
   raw: StreetData;
-}
-
-export interface FoodInspection {
-  _id: number;
-  businessname: string;
-  dbaname?: string;
-  licenseno?: string;
-  licstatus: string;
-  descript: string;
-  result: string;
-  resultdttm: string;
-  violdesc?: string;
-  comments?: string;
-  address: string;
-  city: string;
-  zip: string;
-  location?: string;
 }

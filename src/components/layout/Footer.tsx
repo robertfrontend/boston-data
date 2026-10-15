@@ -1,5 +1,5 @@
-import React from 'react';
 import { Heart } from 'lucide-react';
+import { GITHUB_URL } from '@/lib/site';
 
 export const Footer: React.FC = () => {
   return (
@@ -17,7 +17,7 @@ export const Footer: React.FC = () => {
         </a>
         <span className="opacity-30" role="presentation">•</span>
         <a 
-          href="https://github.com/robertfrontend/boston-street-cleaning" 
+          href={GITHUB_URL} 
           target="_blank" 
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 hover:text-system-blue transition-colors"
