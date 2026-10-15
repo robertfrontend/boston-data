@@ -2,7 +2,7 @@
 
 import { Calendar, Truck, CalendarPlus } from 'lucide-react';
 import { StreetDetails, StreetData } from '@/types/street';
-import { downloadICS } from '@/lib/utils';
+import { downloadICS } from '@/lib/sweeping';
 
 interface ScheduleCardProps {
   streetDetails: StreetDetails;
@@ -60,9 +60,10 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = ({ streetDetails }) => 
           </div>
         </div>
 
-        <button 
+        <button
           onClick={() => downloadICS(streetDetails.raw)}
-          className="w-full py-4 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#007AFF] rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+          disabled={!streetDetails.hasUpcoming}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#F2F2F7] py-4 text-sm font-bold text-[#007AFF] transition-all hover:bg-[#E5E5EA] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C]"
         >
           <CalendarPlus className="w-4 h-4" />
           Add to My Calendar
